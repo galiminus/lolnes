@@ -30,9 +30,6 @@ int _nes_parse_trainer (const char *, size_t, struct nes *);
 int _nes_parse_prg_rom (const char *, size_t, struct nes *);
 int _nes_parse_chr_rom (const char *, size_t, struct nes *);
 
-void _call_brk (struct cpu *);
-void _call_none (struct cpu *);
-
 int
 nes_open (const char *  path,
           struct nes *  nes)
@@ -204,295 +201,295 @@ _nes_cpu_reset (struct cpu * cpu,
 }
 
 void
-_call_brk (struct cpu * cpu)
+_call_brk (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_ora (struct cpu * cpu)
+_call_ora (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_asl (struct cpu * cpu)
+_call_asl (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_php (struct cpu * cpu)
+_call_php (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_blp (struct cpu * cpu)
+_call_blp (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_clc (struct cpu * cpu)
+_call_clc (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_jsr (struct cpu * cpu)
+_call_jsr (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_and (struct cpu * cpu)
+_call_and (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_bit (struct cpu * cpu)
+_call_bit (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_rol (struct cpu * cpu)
-{
-}
-
-
-void
-_call_plp (struct cpu * cpu)
+_call_rol (struct cpu * cpu, uint8_t op)
 {
 }
 
 
 void
-_call_bmi (struct cpu * cpu)
+_call_plp (struct cpu * cpu, uint8_t op)
 {
 }
 
 
 void
-_call_sec (struct cpu * cpu)
+_call_bmi (struct cpu * cpu, uint8_t op)
 {
 }
 
 
 void
-_call_rti (struct cpu * cpu)
+_call_sec (struct cpu * cpu, uint8_t op)
 {
 }
 
 
 void
-_call_eor (struct cpu * cpu)
+_call_rti (struct cpu * cpu, uint8_t op)
 {
 }
 
 
 void
-_call_lsr (struct cpu * cpu)
-{
-}
-
-void
-_call_pha (struct cpu * cpu)
-{
-}
-
-void
-_call_jmp (struct cpu * cpu)
-{
-}
-
-void
-_call_bvc (struct cpu * cpu)
-{
-}
-
-void
-_call_cli (struct cpu * cpu)
-{
-}
-
-void
-_call_rts (struct cpu * cpu)
-{
-}
-
-void
-_call_adc (struct cpu * cpu)
-{
-}
-
-void
-_call_ror (struct cpu * cpu)
-{
-}
-
-void
-_call_pla (struct cpu * cpu)
-{
-}
-
-void
-_call_bvs (struct cpu * cpu)
-{
-}
-
-void
-_call_sei (struct cpu * cpu)
-{
-}
-
-void
-_call_sta (struct cpu * cpu)
-{
-}
-
-void
-_call_stx (struct cpu * cpu)
+_call_eor (struct cpu * cpu, uint8_t op)
 {
 }
 
 
 void
-_call_sty (struct cpu * cpu)
+_call_lsr (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_dey (struct cpu * cpu)
+_call_pha (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_txa (struct cpu * cpu)
+_call_jmp (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_tya (struct cpu * cpu)
+_call_bvc (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_bcc (struct cpu * cpu)
+_call_cli (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_txs (struct cpu * cpu)
+_call_rts (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_lda (struct cpu * cpu)
+_call_adc (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_ldx (struct cpu * cpu)
+_call_ror (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_ldy (struct cpu * cpu)
+_call_pla (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_tay (struct cpu * cpu)
+_call_bvs (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_tax (struct cpu * cpu)
+_call_sei (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_bcs (struct cpu * cpu)
+_call_sta (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_clv (struct cpu * cpu)
+_call_stx (struct cpu * cpu, uint8_t op)
+{
+}
+
+
+void
+_call_sty (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_tsx (struct cpu * cpu)
+_call_dey (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_cpy (struct cpu * cpu)
+_call_txa (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_cmp (struct cpu * cpu)
+_call_tya (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_dec (struct cpu * cpu)
+_call_bcc (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_iny (struct cpu * cpu)
+_call_txs (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_dex (struct cpu * cpu)
+_call_lda (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_bne (struct cpu * cpu)
+_call_ldx (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_cld (struct cpu * cpu)
+_call_ldy (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_cpx (struct cpu * cpu)
+_call_tay (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_sbc (struct cpu * cpu)
+_call_tax (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_inc (struct cpu * cpu)
+_call_bcs (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_inx (struct cpu * cpu)
+_call_clv (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_nop (struct cpu * cpu)
+_call_tsx (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_cpy (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_cmp (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_dec (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_iny (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_dex (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_bne (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_cld (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_cpx (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_sbc (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_inc (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_inx (struct cpu * cpu, uint8_t op)
+{
+}
+
+void
+_call_nop (struct cpu * cpu, uint8_t op)
 {
     return ;
 }
 
 void
-_call_beq (struct cpu * cpu)
+_call_beq (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_sed (struct cpu * cpu)
+_call_sed (struct cpu * cpu, uint8_t op)
 {
 }
 
 void
-_call_none (struct cpu * cpu)
+_call_none (struct cpu * cpu, uint8_t op)
 {
     printf("Unknown operand\n");
     exit(1);
@@ -503,7 +500,7 @@ nes_exec (struct nes * nes)
 {
     struct _opcode {
         char *  name;
-        void    (*call)(struct cpu *);
+        void    (*call)(struct cpu *, uint8_t);
         uint8_t len;
         uint8_t time;
     } opcodes[] = {
@@ -523,7 +520,7 @@ nes_exec (struct nes * nes)
         {"ORA",     _call_ora,  3,      4}, // 0x0D
         {"ASL",     _call_asl,  3,      6}, // 0x0E
         {"NONE",    _call_none, 0,      0}, // 0x0F
-        {"BPL",     _call_blp,  1,      0}, // 0x10
+        {"BPL",     _call_blp,  2,      0}, // 0x10
         {"ORA",     _call_ora,  2,      5}, // 0x11
         {"NONE",    _call_none, 0,      0}, // 0x12
         {"NONE",    _call_none, 0,      0}, // 0x13
@@ -555,7 +552,7 @@ nes_exec (struct nes * nes)
         {"AND",	    _call_and,  3,      4}, // 0x2D
         {"ROL",     _call_rol,  3,      6}, // 0x2E
         {"NONE",    _call_none, 0,      0}, // 0x2F
-        {"BMI",     _call_bmi,  1,      0}, // 0x30
+        {"BMI",     _call_bmi,  2,      0}, // 0x30
         {"AND",	    _call_and,  2,      5}, // 0x31
         {"NONE",    _call_none, 0,      0}, // 0x32
         {"NONE",    _call_none, 0,      0}, // 0x33
@@ -587,7 +584,7 @@ nes_exec (struct nes * nes)
         {"EOR",     _call_eor,  3,      4}, // 0x4D
         {"LSR",     _call_lsr,  3,      6}, // 0x4E
         {"NONE",    _call_none, 0,      0}, // 0x4F
-        {"BVC",     _call_bvc,  1,      0}, // 0x50
+        {"BVC",     _call_bvc,  2,      0}, // 0x50
         {"EOR",     _call_eor,  2,      5}, // 0x51
         {"NONE",    _call_none, 0,      0}, // 0x52
         {"NONE",    _call_none, 0,      0}, // 0x53
@@ -619,7 +616,7 @@ nes_exec (struct nes * nes)
         {"ADC",     _call_adc,  3,      4}, // 0x6D
         {"ROR",     _call_ror,  3,      6}, // 0x6E
         {"NONE",    _call_none, 0,      0}, // 0x6F
-        {"BVS",     _call_bvs,  1,      0}, // 0x70
+        {"BVS",     _call_bvs,  2,      0}, // 0x70
         {"ADC",     _call_adc,  2,      5}, // 0x71
         {"NONE",    _call_none, 0,      0}, // 0x72
         {"NONE",    _call_none, 0,      0}, // 0x73
@@ -651,7 +648,7 @@ nes_exec (struct nes * nes)
         {"STA",     _call_sta,  3,      4}, // 0x8D
         {"STX",     _call_stx,  3,      4}, // 0x8E
         {"NONE",    _call_none, 0,      0}, // 0x8F
-        {"BCC",     _call_bcc,  1,      0}, // 0x90
+        {"BCC",     _call_bcc,  2,      0}, // 0x90
         {"STA",     _call_sta,  2,      6}, // 0x91
         {"NONE",    _call_none, 0,      0}, // 0x92
         {"NONE",    _call_none, 0,      0}, // 0x93
@@ -683,7 +680,7 @@ nes_exec (struct nes * nes)
         {"LDA",     _call_lda,  3,      4}, // 0xAD
         {"LDX",     _call_ldx,  3,      4}, // 0xAE
         {"NONE",    _call_none, 0,      0}, // 0xAF
-        {"BCS",     _call_bcs,  1,      0}, // 0xB0
+        {"BCS",     _call_bcs,  2,      0}, // 0xB0
         {"LDA",     _call_lda,  2,      5}, // 0xB1
         {"NONE",    _call_none, 0,      0}, // 0xB2
         {"NONE",    _call_none, 0,      0}, // 0xB3
@@ -715,7 +712,7 @@ nes_exec (struct nes * nes)
         {"CMP",     _call_cmp,  3,      4}, // 0xCD
         {"DEC",     _call_dec,  3,      6}, // 0xCE
         {"NONE",    _call_none, 0,      0}, // 0xCF
-        {"BNE",     _call_bne,  1,      0}, // 0xD0
+        {"BNE",     _call_bne,  2,      0}, // 0xD0
         {"CMP",     _call_cmp,  2,      5}, // 0xD1
         {"NONE",    _call_none, 0,      0}, // 0xD2
         {"NONE",    _call_none, 0,      0}, // 0xD3
@@ -747,7 +744,7 @@ nes_exec (struct nes * nes)
         {"SBC",     _call_sbc,  3,      4}, // 0xED
         {"INC",     _call_inc,  3,      6}, // 0xEE
         {"NONE",    _call_none, 0,      0}, // 0xEF
-        {"BEQ",     _call_beq,  1,      0}, // 0xF0
+        {"BEQ",     _call_beq,  2,      0}, // 0xF0
         {"SBC",     _call_sbc,  2,      5}, // 0xF1
         {"NONE",    _call_none, 0,      0}, // 0xF2
         {"NONE",    _call_none, 0,      0}, // 0xF3
@@ -773,10 +770,13 @@ nes_exec (struct nes * nes)
     for (;;) {
         op = cpu.mem[cpu.regs.pc];
 
-        printf("%02x %s\n", (unsigned char)op, opcodes[op].name);
+        printf("%s(%02x) %d\n", opcodes[op].name, (unsigned char)op, opcodes[op].len);
 
         cpu.regs.pc += opcodes[op].len;
 
+        if (opcodes[op].len == 0) {
+            cpu.regs.pc += 1;
+        }
         if (cpu.regs.pc >= (0xFFFF)) { // TEMP
             break ;
         }
