@@ -400,11 +400,33 @@ _call_sta (struct cpu * cpu, uint8_t op)
 void
 _call_stx (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x86: // zero page
+        STORE8(cpu, ARG8(cpu, 1), cpu->regs.x);
+        break ;
+    case 0x96: // zero page, y
+        STORE8(cpu, ARG8(cpu, 1) + cpu->regs.y, cpu->regs.x);
+        break ;
+    case 0x8E: // absolute
+        STORE8(cpu, ARG16(cpu, 1), cpu->regs.x);
+        break ;
+    }
 }
 
 void
 _call_sty (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x86: // zero page
+        STORE8(cpu, ARG8(cpu, 1), cpu->regs.y);
+        break ;
+    case 0x96: // zero page, x
+        STORE8(cpu, ARG8(cpu, 1) + cpu->regs.x, cpu->regs.y);
+        break ;
+    case 0x8E: // absolute
+        STORE8(cpu, ARG16(cpu, 1), cpu->regs.y);
+        break ;
+    }
 }
 
 void
