@@ -567,6 +567,20 @@ _call_cmp (struct cpu * cpu, uint8_t op)
 void
 _call_dec (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0xC6: // zero page
+        STORE8(cpu, ARG8(cpu, 1), LOAD8(cpu, ARG8(cpu, 1)) - 1);
+        break ;
+    case 0xD6: // zero page, x
+        STORE8(cpu, ARG8(cpu, 1) + cpu->regs.x, LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) - 1);
+        break ;
+    case 0xCE: // absolute
+        STORE8(cpu, ARG16(cpu, 1), LOAD8(cpu, ARG16(cpu, 1)) - 1);
+        break ;
+    case 0xDE: // absolute, x
+        STORE8(cpu, ARG16(cpu, 1) + cpu->regs.x, LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) - 1);
+        break ;
+    }
 }
 
 void
@@ -602,6 +616,20 @@ _call_sbc (struct cpu * cpu, uint8_t op)
 void
 _call_inc (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0xE6: // zero page
+        STORE8(cpu, ARG8(cpu, 1), LOAD8(cpu, ARG8(cpu, 1)) + 1);
+        break ;
+    case 0xF6: // zero page, x
+        STORE8(cpu, ARG8(cpu, 1) + cpu->regs.x, LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) + 1);
+        break ;
+    case 0xEE: // absolute
+        STORE8(cpu, ARG16(cpu, 1), LOAD8(cpu, ARG16(cpu, 1)) + 1);
+        break ;
+    case 0xFE: // absolute, x
+        STORE8(cpu, ARG16(cpu, 1) + cpu->regs.x, LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) + 1);
+        break ;
+    }
 }
 
 void
