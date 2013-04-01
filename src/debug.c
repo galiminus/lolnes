@@ -43,6 +43,7 @@ nes_cmd (struct nes *   nes,
             if (!(argv[argc] = strtok_r (NULL, " \n", &saveptr))) break ;
 
         if (action == NULL || !strcmp (action, "next")) {
+            printf("\033[F");
             break ;
         }
         else if (!strcmp (action, "exit") || !strcmp (action, "quit")) {

@@ -404,7 +404,7 @@ _call_sei (struct cpu * cpu, uint8_t op) // OK
 }
 
 void
-_call_sta (struct cpu * cpu, uint8_t op)
+_call_sta (struct cpu * cpu, uint8_t op) // OK
 {
     switch (op) {
     case 0x85: // zero page
@@ -448,7 +448,7 @@ _call_stx (struct cpu * cpu, uint8_t op) // OK
 }
 
 void
-_call_sty (struct cpu * cpu, uint8_t op)
+_call_sty (struct cpu * cpu, uint8_t op) // OK
 {
     switch (op) {
     case 0x84: // zero page
@@ -464,7 +464,7 @@ _call_sty (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_dey (struct cpu * cpu, uint8_t op)
+_call_dey (struct cpu * cpu, uint8_t op) // OK
 {
     cpu->regs.y--;
 
@@ -492,7 +492,7 @@ _call_bcc (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_txs (struct cpu * cpu, uint8_t op)
+_call_txs (struct cpu * cpu, uint8_t op) // OK
 {
     cpu->regs.s = cpu->regs.x;
 }
@@ -557,7 +557,7 @@ _call_ldx (struct cpu * cpu, uint8_t op) // OK
 }
 
 void
-_call_ldy (struct cpu * cpu, uint8_t op)
+_call_ldy (struct cpu * cpu, uint8_t op) // OK
 {
     switch (op) {
     case 0xA0: // immediate
@@ -1188,23 +1188,23 @@ nes_cpu_exec (struct nes * nes,
     opcodes[op].call (cpu, op);
 
     if (options & NES_DEBUG) {
-        printf ("%s(%02x) ", opcodes[op].name, (unsigned char)op);
+        printf ("\x1b[32m[%04x]\x1b[0m\t \x1b[31m%s\x1b[0m(%02x) ", cpu->regs.pc, opcodes[op].name, (unsigned char)op);
         if (opcodes[op].len == 2) {
-            printf ("%02x", ARG8);
+            printf ("\x1b[34m%02x\x1b[0m", ARG8);
         } else if (opcodes[op].len == 3) {
-            printf ("%04x", ARG16);
+            printf ("\x1b[34m%04x\x1b[0m", ARG16);
         }
-        printf ("\t(a: %02x, ", cpu->regs.a);
-        printf ("x: %02x, ", cpu->regs.x);
-        printf ("y: %02x, ", cpu->regs.y);
-        printf ("s: %02x, ", cpu->regs.s);
-        printf ("c: %01x, ", cpu->regs.c);
-        printf ("z: %01x, ", cpu->regs.z);
-        printf ("i: %01x, ", cpu->regs.i);
-        printf ("d: %01x, ", cpu->regs.d);
-        printf ("b: %01x, ", cpu->regs.b);
-        printf ("v: %01x, ", cpu->regs.v);
-        printf ("n: %01x)\n", cpu->regs.n);
+        printf ("\ta:\x1b[34m%02x\x1b[0m|", cpu->regs.a);
+        printf ("x:\x1b[34m%02x\x1b[0m|", cpu->regs.x);
+        printf ("y:\x1b[34m%02x\x1b[0m|", cpu->regs.y);
+        printf ("s:\x1b[34m%02x\x1b[0m|", cpu->regs.s);
+        printf ("c:\x1b[34m%01x\x1b[0m|", cpu->regs.c);
+        printf ("z:\x1b[34m%01x\x1b[0m|", cpu->regs.z);
+        printf ("i:\x1b[34m%01x\x1b[0m|", cpu->regs.i);
+        printf ("d:\x1b[34m%01x\x1b[0m|", cpu->regs.d);
+        printf ("b:\x1b[34m%01x\x1b[0m|", cpu->regs.b);
+        printf ("v:\x1b[34m%01x\x1b[0m|", cpu->regs.v);
+        printf ("n:\x1b[34m%01x\x1b[0m\n", cpu->regs.n);
     }
 
     cpu->regs.pc = cpu->regs.new_pc;
