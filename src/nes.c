@@ -50,7 +50,7 @@ int _nes_parse_chr_rom (const char *, size_t, struct nes *);
 #define ARG16(cpu, n)           (((uint16_t)(ARG8((cpu), (n)))) << 8 | ARG8((cpu), (n) + 1))
 
 #define LOAD8(cpu, n)           (cpu)->mem[(n)]
-#define LOAD16(cpu, n)          (LOAD8(cpu, n) << 8 | LOAD8(cpu, n + 1))
+#define LOAD16(cpu, n)          (LOAD8((cpu), (n)) << 8 | LOAD8(cpu, (n) + 1))
 
 #define STORE8(cpu, n, v)       (cpu)->mem[(n)] = (v)
 
@@ -329,6 +329,14 @@ _call_pha (struct cpu * cpu, uint8_t op)
 void
 _call_jmp (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x4C: // Absolute
+        cpu->regs.pc = ARG16(cpu, 1) - 2;
+        break ;
+    case 0x6C: // Indirect
+        cpu->regs.pc = LOAD16(cpu, ARG16(cpu, 1)) - 2;
+        break ;
+    }
 }
 
 void
