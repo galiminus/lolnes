@@ -247,20 +247,20 @@ void
 _call_asl (struct cpu * cpu, uint8_t op)
 {
     switch (op) {
-    case 0x4A: // accumulator
-        cpu->regs.c = cpu->regs.a & (0x01);
+    case 0x0A: // accumulator
+        cpu->regs.c = cpu->regs.a & (0x80);
         cpu->regs.a <<= 1;
         break ;
-    case 0x46: // zero page
+    case 0x06: // zero page
         cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1)) & (0x80);
         LOAD8(cpu, ARG8(cpu, 1)) <<= 1;
-    case 0x56: // zero page, x
+    case 0x16: // zero page, x
         cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) & (0x80);
         LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) <<= 1;
-    case 0x4E: // absolute, x
+    case 0x0E: // absolute, x
         cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1)) & (0x80);
         LOAD8(cpu, ARG16(cpu, 1)) <<= 1;
-    case 0x5E: // absolute, x
+    case 0x1E: // absolute, x
         cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) & (0x80);
         LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) <<= 1;
     }
@@ -300,6 +300,7 @@ _call_bit (struct cpu * cpu, uint8_t op)
 void
 _call_rol (struct cpu * cpu, uint8_t op)
 {
+
 }
 
 
