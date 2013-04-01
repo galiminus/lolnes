@@ -32,6 +32,10 @@ struct cpu
         uint16_t pc;
         uint16_t new_pc;
     } regs;
+
+    struct {
+        uint16_t checkpoint;
+    } debug;
 };
 
 void nes_cpu_init(struct nes *, struct cpu *);

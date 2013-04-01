@@ -910,6 +910,7 @@ nes_cpu_init (struct nes * nes,
     cpu->regs.p = 0x28;
 
     cpu->regs.new_pc = cpu->regs.pc;
+    cpu->debug.checkpoint = 0xFFFF;
 }
 
 int
@@ -1206,6 +1207,9 @@ nes_cpu_exec (struct nes * nes,
         printf ("v:\x1b[34m%01x\x1b[0m|", cpu->regs.v);
         printf ("n:\x1b[34m%01x\x1b[0m\n", cpu->regs.n);
     }
-
     cpu->regs.pc = cpu->regs.new_pc;
+
+    if (cpu->debug.checkpoint == cpu->regs.pc) {
+        cpu->debug.checkpoint = 0xFFFF;
+    }
 }

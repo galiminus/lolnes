@@ -58,6 +58,13 @@ nes_cmd (struct nes *   nes,
 
             _nes_put_memory (cpu->mem, offset, size);
         }
+        else if (!strcmp (action, "checkpoint")) {
+            if (argc < 1) {
+                printf("offset required\n");
+                continue ;
+            }
+            cpu->debug.checkpoint = strtoul(argv[0], NULL, 16);
+        }
         else {
             printf("Unknown command: %s", action);
         }
