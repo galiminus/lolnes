@@ -31,6 +31,36 @@ _call_brk (struct cpu * cpu, uint8_t op)
 void
 _call_ora (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x09: // immediate
+        cpu->regs.a |= ARG8;
+        break ;
+    case 0x05: // zero page
+        cpu->regs.a |= LOAD8(ARG8);
+        break ;
+    case 0x15: // zero page, x
+        cpu->regs.a |= LOAD8(ARG8 + cpu->regs.x);
+        break ;
+    case 0x0D: // absolute
+        cpu->regs.a |= LOAD8(ARG16);
+        break ;
+    case 0x1D: // absolute, x
+        cpu->regs.a |= LOAD8(ARG16 + cpu->regs.x);
+        break ;
+    case 0x19: // absolute, y
+        cpu->regs.a |= LOAD8(ARG16 + cpu->regs.y);
+        break ;
+    case 0x01: // indirect, x
+        cpu->regs.a |= LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        break ;
+    case 0x11: // indirect, y
+        cpu->regs.a |= LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        break ;
+    }
+    if (cpu->regs.a == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.a & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
@@ -88,6 +118,36 @@ _call_jsr (struct cpu * cpu, uint8_t op)
 void
 _call_and (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x29: // immediate
+        cpu->regs.a &= ARG8;
+        break ;
+    case 0x25: // zero page
+        cpu->regs.a &= LOAD8(ARG8);
+        break ;
+    case 0x35: // zero page, x
+        cpu->regs.a &= LOAD8(ARG8 + cpu->regs.x);
+        break ;
+    case 0x2D: // absolute
+        cpu->regs.a &= LOAD8(ARG16);
+        break ;
+    case 0x3D: // absolute, x
+        cpu->regs.a &= LOAD8(ARG16 + cpu->regs.x);
+        break ;
+    case 0x39: // absolute, y
+        cpu->regs.a &= LOAD8(ARG16 + cpu->regs.y);
+        break ;
+    case 0x21: // indirect, x
+        cpu->regs.a &= LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        break ;
+    case 0x31: // indirect, y
+        cpu->regs.a &= LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        break ;
+    }
+    if (cpu->regs.a == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.a & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
@@ -160,6 +220,36 @@ _call_rti (struct cpu * cpu, uint8_t op)
 void
 _call_eor (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x49: // immediate
+        cpu->regs.a ^= ARG8;
+        break ;
+    case 0x45: // zero page
+        cpu->regs.a ^= LOAD8(ARG8);
+        break ;
+    case 0x55: // zero page, x
+        cpu->regs.a ^= LOAD8(ARG8 + cpu->regs.x);
+        break ;
+    case 0x4D: // absolute
+        cpu->regs.a ^= LOAD8(ARG16);
+        break ;
+    case 0x5D: // absolute, x
+        cpu->regs.a ^= LOAD8(ARG16 + cpu->regs.x);
+        break ;
+    case 0x59: // absolute, y
+        cpu->regs.a ^= LOAD8(ARG16 + cpu->regs.y);
+        break ;
+    case 0x41: // indirect, x
+        cpu->regs.a ^= LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        break ;
+    case 0x51: // indirect, y
+        cpu->regs.a ^= LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        break ;
+    }
+    if (cpu->regs.a == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.a & 0x80)
+        cpu->regs.n = 1;
 }
 
 
