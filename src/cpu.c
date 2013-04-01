@@ -29,7 +29,7 @@ _call_brk (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_ora (struct cpu * cpu, uint8_t op)
+_call_ora (struct cpu * cpu, uint8_t op) // OK
 {
     switch (op) {
     case 0x09: // immediate
@@ -87,6 +87,9 @@ _call_asl (struct cpu *cpu, uint8_t op)
         LOAD8(ARG16 + cpu->regs.x) <<= 1;
         break ;
     }
+
+    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
 }
 
 void
@@ -186,6 +189,9 @@ _call_rol (struct cpu * cpu, uint8_t op)
         LOAD8(ARG16 + cpu->regs.x) |= cpu->regs.c;
         break ;
     }
+
+    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
 }
 
 
@@ -277,6 +283,9 @@ _call_lsr (struct cpu * cpu, uint8_t op)
         LOAD8(ARG16 + cpu->regs.x) >>= 1;
         break ;
     }
+
+    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
 }
 
 void
@@ -381,6 +390,9 @@ _call_ror (struct cpu * cpu, uint8_t op)
         LOAD8(ARG16 + cpu->regs.x) |= (cpu->regs.c << 7);
         break ;
     }
+
+    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
 }
 
 void
@@ -476,12 +488,18 @@ void
 _call_txa (struct cpu * cpu, uint8_t op)
 {
     cpu->regs.a = cpu->regs.x;
+
+    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
 }
 
 void
 _call_tya (struct cpu * cpu, uint8_t op)
 {
     cpu->regs.a = cpu->regs.y;
+
+    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
 }
 
 void
@@ -492,7 +510,7 @@ _call_bcc (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_txs (struct cpu * cpu, uint8_t op) // OK
+_call_txs (struct cpu * cpu, uint8_t op)
 {
     cpu->regs.s = cpu->regs.x;
 }
@@ -585,12 +603,18 @@ void
 _call_tay (struct cpu * cpu, uint8_t op)
 {
     cpu->regs.y = cpu->regs.a;
+
+    cpu->regs.z = cpu->regs.y == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.y & 0x80 ? 1 : 0;
 }
 
 void
 _call_tax (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.a = cpu->regs.x;
+    cpu->regs.x = cpu->regs.a;
+
+    cpu->regs.z = cpu->regs.x == 0 ? 1 : 0;
+    cpu->regs.n = cpu->regs.x & 0x80 ? 1 : 0;
 }
 
 void
@@ -853,7 +877,7 @@ _call_inx (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_nop (struct cpu * cpu, uint8_t op)
+_call_nop (struct cpu * cpu, uint8_t op) // OK
 {
     return ;
 }
@@ -866,15 +890,14 @@ _call_beq (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_sed (struct cpu * cpu, uint8_t op)
+_call_sed (struct cpu * cpu, uint8_t op) // OK
 {
     cpu->regs.d = 1;
 }
 
 void
-_call_none (struct cpu * cpu, uint8_t op)
+_call_none (struct cpu * cpu, uint8_t op) // OK
 {
-    printf("Unknown operand\n");
     exit(1);
 }
 

@@ -66,9 +66,8 @@ nes_cmd (struct nes *   nes,
             cpu->debug.checkpoint = strtoul(argv[0], NULL, 16);
         }
         else {
-            printf("Unknown command: %s", action);
+            printf("Unknown command: %s\n", action);
         }
-        printf("\n");
     }
     return (0);
 }
