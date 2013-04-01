@@ -257,7 +257,7 @@ _call_asl (struct cpu * cpu, uint8_t op)
     case 0x16: // zero page, x
         cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) & (0x80);
         LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) <<= 1;
-    case 0x0E: // absolute, x
+    case 0x0E: // absolute
         cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1)) & (0x80);
         LOAD8(cpu, ARG16(cpu, 1)) <<= 1;
     case 0x1E: // absolute, x
@@ -300,7 +300,29 @@ _call_bit (struct cpu * cpu, uint8_t op)
 void
 _call_rol (struct cpu * cpu, uint8_t op)
 {
-
+    switch (op) {
+    case 0x2A: // accumulator
+        cpu->regs.c = cpu->regs.a & (0x80);
+        cpu->regs.a <<= 1;
+        cpu->regs.a |= cpu->regs.c;
+        break ;
+    case 0x26: // zero page
+        cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1)) & (0x80);
+        LOAD8(cpu, ARG8(cpu, 1)) <<= 1;
+        LOAD8(cpu, ARG8(cpu, 1)) |= cpu->regs.c;
+    case 0x36: // zero page, x
+        cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) & (0x80);
+        LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) <<= 1;
+        LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) |= cpu->regs.c;
+    case 0x2E: // absolute
+        cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1)) & (0x80);
+        LOAD8(cpu, ARG16(cpu, 1)) <<= 1;
+        LOAD8(cpu, ARG16(cpu, 1)) |= cpu->regs.c;
+    case 0x3E: // absolute, x
+        cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) & (0x80);
+        LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) <<= 1;
+        LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) |= cpu->regs.c;
+    }
 }
 
 
@@ -349,7 +371,7 @@ _call_lsr (struct cpu * cpu, uint8_t op)
     case 0x56: // zero page, x
         cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) & (0x01);
         LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) >>= 1;
-    case 0x4E: // absolute, x
+    case 0x4E: // absolute
         cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1)) & (0x01);
         LOAD8(cpu, ARG16(cpu, 1)) >>= 1;
     case 0x5E: // absolute, x
@@ -400,6 +422,29 @@ _call_adc (struct cpu * cpu, uint8_t op)
 void
 _call_ror (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x6A: // accumulator
+        cpu->regs.c = cpu->regs.a & (0x01);
+        cpu->regs.a >>= 1;
+        cpu->regs.a |= (cpu->regs.c << 7);
+        break ;
+    case 0x66: // zero page
+        cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1)) & (0x01);
+        LOAD8(cpu, ARG8(cpu, 1)) >>= 1;
+        LOAD8(cpu, ARG8(cpu, 1)) |= (cpu->regs.c << 7);
+    case 0x76: // zero page, x
+        cpu->regs.c = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) & (0x01);
+        LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) >>= 1;
+        LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x) |= (cpu->regs.c << 7);
+    case 0x6E: // absolute
+        cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1)) & (0x01);
+        LOAD8(cpu, ARG16(cpu, 1)) >>= 1;
+        LOAD8(cpu, ARG16(cpu, 1)) |= (cpu->regs.c << 7);
+    case 0x7E: // absolute, x
+        cpu->regs.c = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) & (0x01);
+        LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) >>= 1;
+        LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x) |= (cpu->regs.c << 7);
+    }
 }
 
 void
