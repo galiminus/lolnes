@@ -40,6 +40,7 @@ struct cpu {
         };
 
         uint16_t pc;
+        uint16_t new_pc;
     } regs;
 };
 
@@ -226,6 +227,7 @@ _nes_cpu_reset (struct cpu * cpu,
     cpu->regs.s = 0x00;
     cpu->regs.p = 0x00;
     cpu->regs.pc = 0x8000;
+    cpu->regs.new_pc = cpu->regs.pc;
 }
 
 void
@@ -282,6 +284,8 @@ _call_php (struct cpu * cpu, uint8_t op)
 void
 _call_blp (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.n == 0)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -347,6 +351,8 @@ _call_plp (struct cpu * cpu, uint8_t op)
 void
 _call_bmi (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.n == 1)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 
@@ -406,10 +412,10 @@ _call_jmp (struct cpu * cpu, uint8_t op)
 {
     switch (op) {
     case 0x4C: // Absolute
-        cpu->regs.pc = ARG16(cpu, 1) - 2;
+        cpu->regs.new_pc = ARG16(cpu, 1);
         break ;
     case 0x6C: // Indirect
-        cpu->regs.pc = LOAD16(cpu, ARG16(cpu, 1)) - 2;
+        cpu->regs.new_pc = LOAD16(cpu, ARG16(cpu, 1));
         break ;
     }
 }
@@ -417,6 +423,8 @@ _call_jmp (struct cpu * cpu, uint8_t op)
 void
 _call_bvc (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.v == 0)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -475,6 +483,8 @@ _call_pla (struct cpu * cpu, uint8_t op)
 void
 _call_bvs (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.n == 1)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -561,6 +571,8 @@ _call_tya (struct cpu * cpu, uint8_t op)
 void
 _call_bcc (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.c == 0)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -656,6 +668,8 @@ _call_tax (struct cpu * cpu, uint8_t op)
 void
 _call_bcs (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.c == 1)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -740,6 +754,8 @@ _call_dex (struct cpu * cpu, uint8_t op)
 void
 _call_bne (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.z == 0)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -791,6 +807,8 @@ _call_nop (struct cpu * cpu, uint8_t op)
 void
 _call_beq (struct cpu * cpu, uint8_t op)
 {
+    if (cpu->regs.z == 1)
+        cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
 }
 
 void
@@ -1081,6 +1099,7 @@ nes_exec (struct nes * nes)
     for (;;) {
         op = cpu.mem[cpu.regs.pc];
 
+        cpu.regs.new_pc += opcodes[op].len;
         opcodes[op].call (&cpu, op);
         if (DEBUG) {
             printf("%s(%02x) ", opcodes[op].name, (unsigned char)op);
@@ -1102,7 +1121,6 @@ nes_exec (struct nes * nes)
             printf ("n: %01x)", cpu.regs.n);
             getchar ();
         }
-
-        cpu.regs.pc += opcodes[op].len;
+        cpu.regs.pc = cpu.regs.new_pc;
     }
 }
