@@ -156,7 +156,6 @@ _call_and (struct cpu * cpu, uint8_t op)
 void
 _call_bit (struct cpu * cpu, uint8_t op)
 {
-    
 }
 
 void
@@ -255,7 +254,6 @@ _call_eor (struct cpu * cpu, uint8_t op)
     if (cpu->regs.a & 0x80)
         cpu->regs.n = 1;
 }
-
 
 void
 _call_lsr (struct cpu * cpu, uint8_t op)
