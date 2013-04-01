@@ -7,8 +7,6 @@
 #include <stdio.h>
 
 #include <string.h>
-#include <unistd.h>
-#include <stdlib.h>
 
 #include "nes.h"
 #include "cpu.h"
@@ -173,5 +171,10 @@ _nes_parse_chr_rom (const char *        rom,
 
 nes_exec (struct nes * nes)
 {
-    nes_cpu_exec (nes);
+    struct cpu  cpu;
+
+    nes_cpu_init (nes, &cpu);
+    for (;;) {
+        nes_cpu_exec (nes, &cpu);
+    }
 }

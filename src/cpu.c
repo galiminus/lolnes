@@ -2,40 +2,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-
 #include <stdint.h>
+#include <string.h>
 
 #include "nes.h"
-
-struct cpu {
-    uint8_t     mem[0x10000];
-
-    struct {
-        uint8_t a;
-
-        uint8_t x;
-        uint8_t y;
-
-        uint8_t s;
-
-        union {
-            struct {
-                unsigned short  c       :1; // carry
-                unsigned short  z       :1; // zero
-                unsigned short  i       :1; // IRQ disabled
-                unsigned short  d       :1; // Decimal mode
-                unsigned short  b       :1; // Interrupt caused by brk
-                unsigned short  _u      :1; // Unused
-                unsigned short  v       :1; // Oveflow
-                unsigned short  n       :1; // Negative
-            };
-            uint8_t p;
-        };
-
-        uint16_t pc;
-        uint16_t new_pc;
-    } regs;
-};
+#include "cpu.h"
 
 #define DEBUG 1
 
@@ -46,36 +17,6 @@ struct cpu {
 #define LOAD16(cpu, n)       (LOAD8((cpu), (n + 1)) << 8 | LOAD8(cpu, (n)))
 
 #define STORE8(cpu, n, v)    (cpu)->mem[(n)] = (v)
-
-void
-_nes_cpu_reset (struct cpu * cpu,
-                struct nes * nes)
-{
-    unsigned int        p;
-    unsigned int        i;
-
-    memset (cpu->mem, 0xFF, 0x2000);
-    for (p = 0; p < 4; p++) {
-        i = p * 0x800;
-
-        cpu->mem[0x008 + i] = 0xF7;
-        cpu->mem[0x009 + i] = 0xEF;
-        cpu->mem[0x00A + i] = 0xDF;
-        cpu->mem[0x00F + i] = 0xBF;
-    }
-    memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
-
-    memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
-
-    cpu->regs.a = 0;
-    cpu->regs.x = 0;
-    cpu->regs.y = 0;
-    cpu->regs.s = 0x00;
-    cpu->regs.p = 0x28;
-
-    cpu->regs.pc = 0x8000;
-    cpu->regs.new_pc = cpu->regs.pc;
-}
 
 void
 _call_brk (struct cpu * cpu, uint8_t op)
@@ -681,8 +622,39 @@ _call_none (struct cpu * cpu, uint8_t op)
     exit(1);
 }
 
+void
+nes_cpu_init (struct nes * nes,
+              struct cpu * cpu)
+{
+    unsigned int        p;
+    unsigned int        i;
+
+    memset (cpu->mem, 0xFF, 0x2000);
+    for (p = 0; p < 4; p++) {
+        i = p * 0x800;
+
+        cpu->mem[0x008 + i] = 0xF7;
+        cpu->mem[0x009 + i] = 0xEF;
+        cpu->mem[0x00A + i] = 0xDF;
+        cpu->mem[0x00F + i] = 0xBF;
+    }
+    memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
+
+    memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
+
+    cpu->regs.a = 0;
+    cpu->regs.x = 0;
+    cpu->regs.y = 0;
+    cpu->regs.s = 0x00;
+    cpu->regs.p = 0x28;
+
+    cpu->regs.pc = 0x8000;
+    cpu->regs.new_pc = cpu->regs.pc;
+}
+
 int
-nes_cpu_exec (struct nes * nes)
+nes_cpu_exec (struct nes * nes,
+              struct cpu * cpu)
 {
     struct _opcode {
         char *  name;
@@ -947,37 +919,31 @@ nes_cpu_exec (struct nes * nes)
         {"INC",     _call_inc,  3,      7}, // 0xFE
         {"NONE",    _call_none, 1,      0}, // 0xFF
     };
-
     uint8_t             op;
 
-    struct cpu          cpu;
+    op = cpu->mem[cpu->regs.pc];
 
-    _nes_cpu_reset (&cpu, nes);
-    for (;;) {
-        op = cpu.mem[cpu.regs.pc];
-
-        cpu.regs.new_pc += opcodes[op].len;
-        opcodes[op].call (&cpu, op);
-        if (DEBUG) {
-            printf("%s(%02x) ", opcodes[op].name, (unsigned char)op);
-            if (opcodes[op].len == 2) {
-                printf("%02x", ARG8(&cpu));
-            } else if (opcodes[op].len == 3) {
-                printf("%04x", ARG16(&cpu));
-            }
-            printf ("\t(a: %02x, ", cpu.regs.a);
-            printf ("x: %02x, ", cpu.regs.x);
-            printf ("y: %02x, ", cpu.regs.y);
-            printf ("s: %02x, ", cpu.regs.s);
-            printf ("c: %01x, ", cpu.regs.c);
-            printf ("z: %01x, ", cpu.regs.z);
-            printf ("i: %01x, ", cpu.regs.i);
-            printf ("d: %01x, ", cpu.regs.d);
-            printf ("b: %01x, ", cpu.regs.b);
-            printf ("v: %01x, ", cpu.regs.v);
-            printf ("n: %01x)", cpu.regs.n);
-            getchar ();
+    cpu->regs.new_pc += opcodes[op].len;
+    opcodes[op].call (cpu, op);
+    if (DEBUG) {
+        printf("%s(%02x) ", opcodes[op].name, (unsigned char)op);
+        if (opcodes[op].len == 2) {
+            printf("%02x", ARG8(cpu));
+        } else if (opcodes[op].len == 3) {
+            printf("%04x", ARG16(cpu));
         }
-        cpu.regs.pc = cpu.regs.new_pc;
+        printf ("\t(a: %02x, ", cpu->regs.a);
+        printf ("x: %02x, ", cpu->regs.x);
+        printf ("y: %02x, ", cpu->regs.y);
+        printf ("s: %02x, ", cpu->regs.s);
+        printf ("c: %01x, ", cpu->regs.c);
+        printf ("z: %01x, ", cpu->regs.z);
+        printf ("i: %01x, ", cpu->regs.i);
+        printf ("d: %01x, ", cpu->regs.d);
+        printf ("b: %01x, ", cpu->regs.b);
+        printf ("v: %01x, ", cpu->regs.v);
+        printf ("n: %01x)", cpu->regs.n);
+        getchar ();
     }
+    cpu->regs.pc = cpu->regs.new_pc;
 }
