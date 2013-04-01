@@ -202,7 +202,7 @@ _nes_put_memory (const char *   memory,
 
     printf("0000: ");
     for (i = 0; i < size; i++) {
-        printf("%02x ", (unsigned char)memory[size]);
+        printf("%02x ", (unsigned char)memory[i]);
         if (!((i + 1) % 32) && (i + 1) < size) {
             printf ("\n%04x: ", i);
         }
