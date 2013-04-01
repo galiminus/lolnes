@@ -1225,7 +1225,10 @@ nes_cpu_exec (struct nes * nes,
     cpu->regs.new_pc += opcodes[op].len;
     opcodes[op].call (cpu, op);
 
-    if (options & NES_DEBUG) {
+    if (cpu->debug.checkpoint == cpu->regs.pc) {
+        cpu->debug.checkpoint = 0xFFFF;
+    }
+    if (options & NES_DEBUG && cpu->debug.checkpoint == 0xFFFF) {
         printf ("\x1b[32m[%04x]\x1b[0m\t \x1b[31m%s\x1b[0m(%02x) ", cpu->regs.pc, opcodes[op].name, (unsigned char)op);
         if (opcodes[op].len == 2) {
             printf ("\x1b[34m%02x\x1b[0m", ARG8);
@@ -1244,9 +1247,6 @@ nes_cpu_exec (struct nes * nes,
         printf ("v:\x1b[34m%01x\x1b[0m|", cpu->regs.v);
         printf ("n:\x1b[34m%01x\x1b[0m\n", cpu->regs.n);
     }
-    cpu->regs.pc = cpu->regs.new_pc;
 
-    if (cpu->debug.checkpoint == cpu->regs.pc) {
-        cpu->debug.checkpoint = 0xFFFF;
-    }
+    cpu->regs.pc = cpu->regs.new_pc;
 }
