@@ -2,6 +2,7 @@
 # define __NES_H__
 
 #include <stdint.h>
+#include <stdlib.h>
 
 struct nes
 {
@@ -91,8 +92,10 @@ struct nes
     const char *        chr_rom;
 };
 
+#define NES_DEBUG 0x01
+
 int nes_open (const char *, struct nes *);
 int nes_parse (const char *, size_t, struct nes *);
-int nes_exec (struct nes *);
+int nes_exec (struct nes *, uint32_t);
 
 #endif /* !__NES_H__ */

@@ -35,6 +35,6 @@ struct cpu
 };
 
 void nes_cpu_init(struct nes *, struct cpu *);
-int nes_cpu_exec(struct nes *, struct cpu *);
+int nes_cpu_exec(struct nes *, struct cpu *, uint32_t);
 
 #endif /* !__CPU_H__ */

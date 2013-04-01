@@ -8,8 +8,6 @@
 #include "nes.h"
 #include "cpu.h"
 
-#define DEBUG 1
-
 #define ARG8            (cpu)->mem[(cpu)->regs.pc + 1]
 #define ARG16           (((uint16_t)((cpu)->mem[(cpu)->regs.pc + 2])) << 8 | ARG8)
 
@@ -65,8 +63,8 @@ _call_asl (struct cpu *cpu, uint8_t op)
 void
 _call_php (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.s--;
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.p;
-    cpu->regs.s -= 0x01;
 }
 
 void
@@ -195,8 +193,8 @@ _call_lsr (struct cpu * cpu, uint8_t op)
 void
 _call_pha (struct cpu * cpu, uint8_t op)
 {
-    cpu->mem[0x100 + cpu->regs.s] = cpu->regs.a;
     cpu->regs.s -= 0x01;
+    cpu->mem[0x100 + cpu->regs.s] = cpu->regs.a;
 }
 
 void
@@ -270,7 +268,7 @@ _call_ror (struct cpu * cpu, uint8_t op)
 void
 _call_pla (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s]
+    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
     cpu->regs.s += 0x01;
 }
 
@@ -350,16 +348,19 @@ _call_sty (struct cpu * cpu, uint8_t op)
 void
 _call_dey (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.y--;
 }
 
 void
 _call_txa (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.a = cpu->regs.x;
 }
 
 void
 _call_tya (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.a = cpu->regs.y;
 }
 
 void
@@ -465,11 +466,13 @@ _call_ldy (struct cpu * cpu, uint8_t op)
 void
 _call_tay (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.y = cpu->regs.a;
 }
 
 void
 _call_tax (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.a = cpu->regs.x;
 }
 
 void
@@ -552,11 +555,13 @@ _call_dec (struct cpu * cpu, uint8_t op)
 void
 _call_iny (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.y++;
 }
 
 void
 _call_dex (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.x--;
 }
 
 void
@@ -604,6 +609,7 @@ _call_inc (struct cpu * cpu, uint8_t op)
 void
 _call_inx (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.x++;
 }
 
 void
@@ -650,23 +656,26 @@ nes_cpu_init (struct nes * nes,
     }
     memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
 
-    memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
-
-    cpu->mem[0x2002] = 0xF0;
-
+    if (nes->header.prg_rom_size == 1) {
+        memcpy (&cpu->mem[0xC000], nes->prg_rom, 16384);
+        cpu->regs.pc = 0xC000;
+    } else {
+        memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
+        cpu->regs.pc = 0x8000;
+    }
     cpu->regs.a = 0;
     cpu->regs.x = 0;
     cpu->regs.y = 0;
     cpu->regs.s = 0xFF;
     cpu->regs.p = 0x28;
 
-    cpu->regs.pc = 0x8000;
     cpu->regs.new_pc = cpu->regs.pc;
 }
 
 int
 nes_cpu_exec (struct nes * nes,
-              struct cpu * cpu)
+              struct cpu * cpu,
+              uint32_t     options)
 {
     struct _opcode {
         char *  name;
@@ -937,12 +946,13 @@ nes_cpu_exec (struct nes * nes,
 
     cpu->regs.new_pc += opcodes[op].len;
     opcodes[op].call (cpu, op);
-    if (DEBUG) {
-        printf("%s(%02x) ", opcodes[op].name, (unsigned char)op);
+
+    if (options & NES_DEBUG) {
+        printf ("%s(%02x) ", opcodes[op].name, (unsigned char)op);
         if (opcodes[op].len == 2) {
-            printf("%02x", ARG8);
+            printf ("%02x", ARG8);
         } else if (opcodes[op].len == 3) {
-            printf("%04x", ARG16);
+            printf ("%04x", ARG16);
         }
         printf ("\t(a: %02x, ", cpu->regs.a);
         printf ("x: %02x, ", cpu->regs.x);
@@ -954,8 +964,8 @@ nes_cpu_exec (struct nes * nes,
         printf ("d: %01x, ", cpu->regs.d);
         printf ("b: %01x, ", cpu->regs.b);
         printf ("v: %01x, ", cpu->regs.v);
-        printf ("n: %01x)", cpu->regs.n);
-        getchar ();
+        printf ("n: %01x)\n", cpu->regs.n);
     }
+
     cpu->regs.pc = cpu->regs.new_pc;
 }

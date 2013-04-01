@@ -16,7 +16,7 @@ main (int argc, const char ** argv)
         goto error;
     }
 
-    nes_exec (&nes);
+    nes_exec (&nes, NES_DEBUG);
 
     return (0);
 

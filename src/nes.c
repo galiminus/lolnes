@@ -10,6 +10,7 @@
 
 #include "nes.h"
 #include "cpu.h"
+#include "ppu.h"
 
 int _nes_parse_header (const char *, size_t, struct nes *);
 int _nes_parse_trainer (const char *, size_t, struct nes *);
@@ -137,6 +138,11 @@ _nes_parse_prg_rom (const char *        rom,
 {
     size_t      prg_rom_size;
 
+    if (nes->header.prg_rom_size > 2) {
+        printf ("> 2k cartridge are not supported\n");
+        return (-1);
+    }
+
     prg_rom_size = nes->header.prg_rom_size * 16384;
     if (prg_rom_size < prg_rom_size) {
         printf ("Invalid PRG ROM size\n");
@@ -169,12 +175,62 @@ _nes_parse_chr_rom (const char *        rom,
     return (chr_rom_size);
 }
 
-nes_exec (struct nes * nes)
+int
+nes_exec (struct nes *  nes,
+          uint32_t      options)
 {
     struct cpu  cpu;
+    struct ppu  ppu;
 
     nes_cpu_init (nes, &cpu);
+    nes_ppu_init (nes, &cpu, &ppu);
     for (;;) {
-        nes_cpu_exec (nes, &cpu);
+        nes_cpu_exec (nes, &cpu, options);
+        nes_ppu_exec (nes, &cpu, &ppu, options);
+
+        if (options & NES_DEBUG &&_nes_cmd (nes, &cpu, &ppu) == -1) {
+            return (-1);
+        }
     }
 }
+
+void
+_nes_put_memory (const char *   memory,
+                 size_t         size)
+{
+    size_t      i;
+
+    printf("0000: ");
+    for (i = 0; i < size; i++) {
+        printf("%02x ", (unsigned char)memory[size]);
+        if (!((i + 1) % 32) && (i + 1) < size) {
+            printf ("\n%04x: ", i);
+        }
+    }
+    printf("\n");
+}
+
+int
+_nes_cmd (struct nes *   nes,
+          struct cpu *   cpu,
+          struct ppu *   ppu)
+{
+    char cmd[256];
+
+    for (;;) {
+        printf (">>> ");
+        fgets (cmd, sizeof (cmd), stdin);
+        if (!strncmp (cmd, "exit", 4) || !strncmp (cmd, "quit", 4)) {
+            return (-1);
+        }
+        if (!strncmp (cmd, "ram", 3)) {
+            _nes_put_memory (cpu->mem, 0x2000);
+        }
+        if (!strncmp (cmd, "next", 4) || cmd[0] == 'n' || cmd[0] == '\n') {
+            break ;
+        }
+        printf("\n");
+    }
+    return (0);
+}
+
