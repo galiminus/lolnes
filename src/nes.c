@@ -441,6 +441,23 @@ _call_lda (struct cpu * cpu, uint8_t op)
 void
 _call_ldx (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0xA2: // immediate
+        cpu->regs.x = ARG8(cpu, 1);
+        break ;
+    case 0xA6: // zero page
+        cpu->regs.x = LOAD8(cpu, ARG8(cpu, 1));
+        break ;
+    case 0xB6: // zero page, y
+        cpu->regs.x = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.y);
+        break ;
+    case 0xAE: // absolute
+        cpu->regs.x = LOAD8(cpu, ARG16(cpu, 1));
+        break ;
+    case 0xBE: // absolute, y
+        cpu->regs.x = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.y);
+        break ;
+    }
 }
 
 void
