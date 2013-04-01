@@ -46,11 +46,13 @@ int _nes_parse_trainer (const char *, size_t, struct nes *);
 int _nes_parse_prg_rom (const char *, size_t, struct nes *);
 int _nes_parse_chr_rom (const char *, size_t, struct nes *);
 
-#define ARG8(cpu, n)     (cpu)->mem[(cpu)->regs.pc + (n)]
-#define ARG16(cpu, n)    (((uint16_t)(ARG8((cpu), (n)))) << 8 | ARG8((cpu), (n) + 1))
+#define ARG8(cpu, n)            (cpu)->mem[(cpu)->regs.pc + (n)]
+#define ARG16(cpu, n)           (((uint16_t)(ARG8((cpu), (n)))) << 8 | ARG8((cpu), (n) + 1))
 
-#define LOAD8(cpu, n)   (cpu)->mem[(n)]
-#define LOAD16(cpu, n)  (LOAD8(cpu, n) << 8 | LOAD8(cpu, n + 1))
+#define LOAD8(cpu, n)           (cpu)->mem[(n)]
+#define LOAD16(cpu, n)          (LOAD8(cpu, n) << 8 | LOAD8(cpu, n + 1))
+
+#define STORE8(cpu, n, v)       (cpu)->mem[(n)] = (v)
 
 int
 nes_open (const char *  path,
@@ -370,6 +372,29 @@ _call_sei (struct cpu * cpu, uint8_t op)
 void
 _call_sta (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x85: // zero page
+        STORE8(cpu, ARG8(cpu, 1), cpu->regs.a);
+        break ;
+    case 0x95: // zero page, x
+        STORE8(cpu, ARG8(cpu, 1) + cpu->regs.x, cpu->regs.a);
+        break ;
+    case 0x8D: // absolute
+        STORE8(cpu, ARG16(cpu, 1), cpu->regs.a);
+        break ;
+    case 0x9D: // absolute, x
+        STORE8(cpu, ARG16(cpu, 1) + cpu->regs.x, cpu->regs.a);
+        break ;
+    case 0x99: // absolute, y
+        STORE8(cpu, ARG16(cpu, 1) + cpu->regs.y, cpu->regs.a);
+        break ;
+    case 0x81: // indirect, x (indexed indirect)
+        STORE8(cpu, LOAD16(cpu, ARG8(cpu, 1) + cpu->regs.x), cpu->regs.a);
+        break ;
+    case 0x91: // indirect, y (indirect indexed)
+        STORE8(cpu, LOAD16(cpu, ARG8(cpu, 1)) + cpu->regs.y, cpu->regs.a);
+        break ;
+    }
 }
 
 void
