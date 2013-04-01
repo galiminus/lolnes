@@ -261,6 +261,7 @@ _call_blp (struct cpu * cpu, uint8_t op)
 void
 _call_clc (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.c = 0;
 }
 
 void
@@ -299,6 +300,7 @@ _call_bmi (struct cpu * cpu, uint8_t op)
 void
 _call_sec (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.c = 1;
 }
 
 
@@ -337,6 +339,7 @@ _call_bvc (struct cpu * cpu, uint8_t op)
 void
 _call_cli (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.i = 0;
 }
 
 void
@@ -367,6 +370,7 @@ _call_bvs (struct cpu * cpu, uint8_t op)
 void
 _call_sei (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.i = 1;
 }
 
 void
@@ -547,6 +551,7 @@ _call_bcs (struct cpu * cpu, uint8_t op)
 void
 _call_clv (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.d = 0;
 }
 
 void
@@ -651,6 +656,7 @@ _call_beq (struct cpu * cpu, uint8_t op)
 void
 _call_sed (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.d = 1;
 }
 
 void
