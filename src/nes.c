@@ -217,15 +217,27 @@ _nes_cpu_reset (struct cpu * cpu,
                 struct nes * nes)
 {
     unsigned int        p;
+    unsigned int        i;
 
-    memset (cpu->mem, 0x00, sizeof (cpu->mem));
+    memset (cpu->mem, 0xFF, 0x2000);
+    for (p = 0; p < 4; p++) {
+        i = p * 0x800;
+
+        cpu->mem[0x008 + i] = 0xF7;
+        cpu->mem[0x009 + i] = 0xEF;
+        cpu->mem[0x00A + i] = 0xDF;
+        cpu->mem[0x00F + i] = 0xBF;
+    }
+    memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
+
     memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
 
     cpu->regs.a = 0;
     cpu->regs.x = 0;
     cpu->regs.y = 0;
     cpu->regs.s = 0x00;
-    cpu->regs.p = 0x00;
+    cpu->regs.p = 0x28;
+
     cpu->regs.pc = 0x8000;
     cpu->regs.new_pc = cpu->regs.pc;
 }
@@ -239,14 +251,12 @@ _call_brk (struct cpu * cpu, uint8_t op)
       BRK +2 so that BRK may be used to replace a two-byte instruction
       for debugging and the subsequent RTI will be correct.
      */
-    cpu->regs.pc++;
+    cpu->regs.new_pc += 2;
 }
 
 void
 _call_ora (struct cpu * cpu, uint8_t op)
 {
-    switch (op) {
-    }
 }
 
 void
@@ -282,7 +292,7 @@ _call_php (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_blp (struct cpu * cpu, uint8_t op)
+_call_bpl (struct cpu * cpu, uint8_t op)
 {
     if (cpu->regs.n == 0)
         cpu->regs.new_pc += (int8_t)ARG8(cpu, 1);
@@ -609,6 +619,10 @@ _call_lda (struct cpu * cpu, uint8_t op)
         cpu->regs.a = LOAD8(cpu, LOAD16(cpu, ARG8(cpu, 1)) + cpu->regs.y);
         break ;
     }
+    if (cpu->regs.a == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.a & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
@@ -631,6 +645,10 @@ _call_ldx (struct cpu * cpu, uint8_t op)
         cpu->regs.x = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.y);
         break ;
     }
+    if (cpu->regs.x == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.x & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
@@ -653,6 +671,10 @@ _call_ldy (struct cpu * cpu, uint8_t op)
         cpu->regs.y = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x);
         break ;
     }
+    if (cpu->regs.y == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.y & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
@@ -849,7 +871,7 @@ nes_exec (struct nes * nes)
         {"ORA",     _call_ora,  3,      4}, // 0x0D
         {"ASL",     _call_asl,  3,      6}, // 0x0E
         {"NONE",    _call_none, 1,      0}, // 0x0F
-        {"BPL",     _call_blp,  2,      0}, // 0x10
+        {"BPL",     _call_bpl,  2,      0}, // 0x10
         {"ORA",     _call_ora,  2,      5}, // 0x11
         {"NONE",    _call_none, 1,      0}, // 0x12
         {"NONE",    _call_none, 1,      0}, // 0x13
