@@ -16,12 +16,28 @@ struct cpu {
     uint8_t     mem[0x10000];
 
     struct {
-        uint8_t acc;
+        uint8_t a;
+
         uint8_t x;
         uint8_t y;
-        uint8_t sp;
+
+        uint8_t s;
+
+        union {
+            struct {
+                unsigned short  c       :1; // carry
+                unsigned short  z       :1; // zero
+                unsigned short  i       :1; // IRQ disabled
+                unsigned short  d       :1; // Decimal mode
+                unsigned short  b       :1; // Interrupt caused by brk
+                unsigned short  _u      :1; // Unused
+                unsigned short  v       :1; // Oveflow
+                unsigned short  n       :1; // Negative
+            };
+            uint8_t p;
+        };
+
         uint16_t pc;
-        uint8_t status;
     } regs;
 };
 
@@ -29,6 +45,12 @@ int _nes_parse_header (const char *, size_t, struct nes *);
 int _nes_parse_trainer (const char *, size_t, struct nes *);
 int _nes_parse_prg_rom (const char *, size_t, struct nes *);
 int _nes_parse_chr_rom (const char *, size_t, struct nes *);
+
+#define ARG8(cpu, n)     (cpu)->mem[(cpu)->regs.pc + (n)]
+#define ARG16(cpu, n)    (((uint16_t)(ARG8((cpu), (n)))) << 8 | ARG8((cpu), (n) + 1))
+
+#define LOAD8(cpu, n)   (cpu)->mem[(n)]
+#define LOAD16(cpu, n)  (LOAD8(cpu, n) << 8 | LOAD8(cpu, n + 1))
 
 int
 nes_open (const char *  path,
@@ -192,22 +214,31 @@ _nes_cpu_reset (struct cpu * cpu,
     memset (cpu->mem, sizeof (cpu->mem), 0x00);
     memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
 
-    cpu->regs.acc = 0;
+    cpu->regs.a = 0;
     cpu->regs.x = 0;
     cpu->regs.y = 0;
-    cpu->regs.sp = 0x00;
+    cpu->regs.s = 0x00;
+    cpu->regs.p = 0x00;
     cpu->regs.pc = 0x8000;
-    cpu->regs.status = 0x00;
 }
 
 void
 _call_brk (struct cpu * cpu, uint8_t op)
 {
+    /*
+      BRK causes a non-maskable interrupt and increments the program
+      counter by one. Therefore an RTI will go to the address of the
+      BRK +2 so that BRK may be used to replace a two-byte instruction
+      for debugging and the subsequent RTI will be correct.
+     */
+    cpu->regs.pc++;
 }
 
 void
 _call_ora (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    }
 }
 
 void
@@ -346,7 +377,6 @@ _call_stx (struct cpu * cpu, uint8_t op)
 {
 }
 
-
 void
 _call_sty (struct cpu * cpu, uint8_t op)
 {
@@ -380,6 +410,32 @@ _call_txs (struct cpu * cpu, uint8_t op)
 void
 _call_lda (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0xA9: // immediate
+        cpu->regs.a = ARG8(cpu, 1);
+        break ;
+    case 0xA5: // zero page
+        cpu->regs.a = LOAD8(cpu, ARG8(cpu, 1));
+        break ;
+    case 0xB5: // zero page, x
+        cpu->regs.a = LOAD8(cpu, ARG8(cpu, 1) + cpu->regs.x);
+        break ;
+    case 0xAD: // absolute
+        cpu->regs.a = LOAD8(cpu, ARG16(cpu, 1));
+        break ;
+    case 0xBD: // absolute, x
+        cpu->regs.a = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.x);
+        break ;
+    case 0xB9: // absolute, y
+        cpu->regs.a = LOAD8(cpu, ARG16(cpu, 1) + cpu->regs.y);
+        break ;
+    case 0xA1: // indirect, x (indexed indirect)
+        cpu->regs.a = LOAD8(cpu, LOAD16(cpu, ARG8(cpu, 1) + cpu->regs.x));
+        break ;
+    case 0xB1: // indirect, y (indirect indexed)
+        cpu->regs.a = LOAD8(cpu, LOAD16(cpu, ARG8(cpu, 1)) + cpu->regs.y);
+        break ;
+    }
 }
 
 void
@@ -492,7 +548,7 @@ void
 _call_none (struct cpu * cpu, uint8_t op)
 {
     printf("Unknown operand\n");
-    exit(1);
+//    exit(1);
 }
 
 int
@@ -771,6 +827,7 @@ nes_exec (struct nes * nes)
         op = cpu.mem[cpu.regs.pc];
 
         printf("%s(%02x) %d\n", opcodes[op].name, (unsigned char)op, opcodes[op].len);
+        opcodes[op].call (&cpu, op);
 
         cpu.regs.pc += opcodes[op].len;
 
