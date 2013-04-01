@@ -12,6 +12,8 @@
 
 #include "nes.h"
 
+#define DEBUG 1
+
 struct cpu {
     uint8_t     mem[0x10000];
 
@@ -47,10 +49,12 @@ int _nes_parse_prg_rom (const char *, size_t, struct nes *);
 int _nes_parse_chr_rom (const char *, size_t, struct nes *);
 
 #define ARG8(cpu, n)            (cpu)->mem[(cpu)->regs.pc + (n)]
-#define ARG16(cpu, n)           (((uint16_t)(ARG8((cpu), (n)))) << 8 | ARG8((cpu), (n) + 1))
+/*#define ARG16(cpu, n)           (((uint16_t)(ARG8((cpu), (n)))) << 8 | ARG8((cpu), (n) + 1))*/
+#define ARG16(cpu, n)           (((uint16_t)(ARG8((cpu), (n + 1)))) << 8 | ARG8((cpu), (n)))
 
 #define LOAD8(cpu, n)           (cpu)->mem[(n)]
-#define LOAD16(cpu, n)          (LOAD8((cpu), (n)) << 8 | LOAD8(cpu, (n) + 1))
+/*#define LOAD16(cpu, n)          (LOAD8((cpu), (n)) << 8 | LOAD8(cpu, (n) + 1))*/
+#define LOAD16(cpu, n)          (LOAD8((cpu), (n + 1)) << 8 | LOAD8(cpu, (n)))
 
 #define STORE8(cpu, n, v)       (cpu)->mem[(n)] = (v)
 
@@ -213,7 +217,7 @@ _nes_cpu_reset (struct cpu * cpu,
 {
     unsigned int        p;
 
-    memset (cpu->mem, sizeof (cpu->mem), 0x00);
+    memset (cpu->mem, 0x00, sizeof (cpu->mem));
     memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
 
     cpu->regs.a = 0;
@@ -657,7 +661,7 @@ _call_bcs (struct cpu * cpu, uint8_t op)
 void
 _call_clv (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.d = 0;
+    cpu->regs.v = 0;
 }
 
 void
@@ -741,6 +745,7 @@ _call_bne (struct cpu * cpu, uint8_t op)
 void
 _call_cld (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.d = 0;
 }
 
 void
@@ -1076,13 +1081,28 @@ nes_exec (struct nes * nes)
     for (;;) {
         op = cpu.mem[cpu.regs.pc];
 
-        printf("%s(%02x) %d\n", opcodes[op].name, (unsigned char)op, opcodes[op].len);
         opcodes[op].call (&cpu, op);
+        if (DEBUG) {
+            printf("%s(%02x) ", opcodes[op].name, (unsigned char)op);
+            if (opcodes[op].len == 2) {
+                printf("%02x", ARG8(&cpu, 1));
+            } else if (opcodes[op].len == 3) {
+                printf("%04x", ARG16(&cpu, 1));
+            }
+            printf ("\t(a: %02x, ", cpu.regs.a);
+            printf ("x: %02x, ", cpu.regs.x);
+            printf ("y: %02x, ", cpu.regs.y);
+            printf ("s: %02x, ", cpu.regs.s);
+            printf ("c: %01x, ", cpu.regs.c);
+            printf ("z: %01x, ", cpu.regs.z);
+            printf ("i: %01x, ", cpu.regs.i);
+            printf ("d: %01x, ", cpu.regs.d);
+            printf ("b: %01x, ", cpu.regs.b);
+            printf ("v: %01x, ", cpu.regs.v);
+            printf ("n: %01x)", cpu.regs.n);
+            getchar ();
+        }
 
         cpu.regs.pc += opcodes[op].len;
-
-        if (cpu.regs.pc >= (0xFFFF)) { // TEMP
-            break ;
-        }
     }
 }
