@@ -113,6 +113,9 @@ _call_clc (struct cpu * cpu, uint8_t op)
 void
 _call_jsr (struct cpu * cpu, uint8_t op)
 {
+    cpu->mem[++cpu->regs.s] = cpu->regs.pc >> 8;
+    cpu->mem[++cpu->regs.s] = cpu->regs.pc & 0x00FF;
+    cpu->regs.pc = ARG16 - 1;
 }
 
 void
@@ -192,7 +195,7 @@ void
 _call_plp (struct cpu * cpu, uint8_t op)
 {
     cpu->regs.p = cpu->mem[0x100 + cpu->regs.s];
-    cpu->regs.s -= 0x01;
+    cpu->regs.s++;
 }
 
 
@@ -283,7 +286,7 @@ _call_lsr (struct cpu * cpu, uint8_t op)
 void
 _call_pha (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.s -= 0x01;
+    cpu->regs.s--;
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.a;
 }
 
@@ -359,7 +362,7 @@ void
 _call_pla (struct cpu * cpu, uint8_t op)
 {
     cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
-    cpu->regs.s += 0x01;
+    cpu->regs.s++;
 }
 
 void
@@ -587,6 +590,33 @@ _call_tsx (struct cpu * cpu, uint8_t op)
 void
 _call_cpy (struct cpu * cpu, uint8_t op)
 {
+    int result;
+
+    switch (op) {
+    case 0xE0: // immediate
+        result = cpu->regs.x - ARG8;
+        break ;
+    case 0xE4: // zero page
+        result = cpu->regs.x - LOAD8(ARG8);
+        break ;
+    case 0xEC: // absolute
+        result = cpu->regs.x - LOAD8(ARG16);
+        break ;
+    }
+    if (result < 0) {
+        cpu->regs.n = 1;
+        cpu->regs.z = 0;
+        cpu->regs.c = 0;
+    }
+    else if (result == 0) {
+        cpu->regs.n = 0;
+        cpu->regs.z = 1;
+        cpu->regs.c = 1;
+    } else {
+        cpu->regs.n = 0;
+        cpu->regs.z = 0;
+        cpu->regs.c = 1;
+    }
 }
 
 void
@@ -597,10 +627,10 @@ _call_cmp (struct cpu * cpu, uint8_t op)
     switch (op) {
     case 0xC9: // immediate
         result = cpu->regs.a - ARG8;
-        break;
+        break ;
     case 0xC5: // zero page
         result = cpu->regs.a - LOAD8(ARG8);
-        break;
+        break ;
     case 0xD5: // zero page, x
         result = cpu->regs.a - LOAD8(ARG8 + cpu->regs.x);
         break ;
@@ -619,8 +649,20 @@ _call_cmp (struct cpu * cpu, uint8_t op)
         result = cpu->regs.a - LOAD8(LOAD16(ARG8) + cpu->regs.y);
         break ;
     }
-    cpu->regs.c = result >= 0 ? 1 : 0;
-    cpu->regs.z = result == 0 ? 1 : 0;
+    if (result < 0) {
+        cpu->regs.n = 1;
+        cpu->regs.z = 0;
+        cpu->regs.c = 0;
+    }
+    else if (result == 0) {
+        cpu->regs.n = 0;
+        cpu->regs.z = 1;
+        cpu->regs.c = 1;
+    } else {
+        cpu->regs.n = 0;
+        cpu->regs.z = 0;
+        cpu->regs.c = 1;
+    }
 }
 
 void
@@ -670,6 +712,33 @@ _call_cld (struct cpu * cpu, uint8_t op)
 void
 _call_cpx (struct cpu * cpu, uint8_t op)
 {
+    int result;
+
+    switch (op) {
+    case 0xE0: // immediate
+        result = cpu->regs.x - ARG8;
+        break ;
+    case 0xE4: // zero page
+        result = cpu->regs.x - LOAD8(ARG8);
+        break ;
+    case 0xEC: // absolute
+        result = cpu->regs.x - LOAD8(ARG16);
+        break ;
+    }
+    if (result < 0) {
+        cpu->regs.n = 1;
+        cpu->regs.z = 0;
+        cpu->regs.c = 0;
+    }
+    else if (result == 0) {
+        cpu->regs.n = 0;
+        cpu->regs.z = 1;
+        cpu->regs.c = 1;
+    } else {
+        cpu->regs.n = 0;
+        cpu->regs.z = 0;
+        cpu->regs.c = 1;
+    }
 }
 
 void
