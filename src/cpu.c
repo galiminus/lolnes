@@ -98,7 +98,7 @@ _call_php (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_bpl (struct cpu * cpu, uint8_t op)
+_call_bpl (struct cpu * cpu, uint8_t op) // OK
 {
     if (cpu->regs.n == 0)
         cpu->regs.new_pc += (int8_t)ARG8;
@@ -402,7 +402,7 @@ _call_bvs (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_sei (struct cpu * cpu, uint8_t op)
+_call_sei (struct cpu * cpu, uint8_t op) // OK
 {
     cpu->regs.i = 1;
 }
@@ -455,13 +455,13 @@ void
 _call_sty (struct cpu * cpu, uint8_t op)
 {
     switch (op) {
-    case 0x86: // zero page
+    case 0x84: // zero page
         STORE8(ARG8, cpu->regs.y);
         break ;
-    case 0x96: // zero page, x
+    case 0x94: // zero page, x
         STORE8(ARG8 + cpu->regs.x, cpu->regs.y);
         break ;
-    case 0x8E: // absolute
+    case 0x8C: // absolute
         STORE8(ARG16, cpu->regs.y);
         break ;
     }
@@ -499,7 +499,7 @@ _call_txs (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_lda (struct cpu * cpu, uint8_t op)
+_call_lda (struct cpu * cpu, uint8_t op) // OK
 {
     switch (op) {
     case 0xA9: // immediate
@@ -534,7 +534,7 @@ _call_lda (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_ldx (struct cpu * cpu, uint8_t op)
+_call_ldx (struct cpu * cpu, uint8_t op) // OK
 {
     switch (op) {
     case 0xA2: // immediate
@@ -622,13 +622,13 @@ _call_cpy (struct cpu * cpu, uint8_t op)
     int result;
 
     switch (op) {
-    case 0xE0: // immediate
+    case 0xC0: // immediate
         result = cpu->regs.x - ARG8;
         break ;
-    case 0xE4: // zero page
+    case 0xC4: // zero page
         result = cpu->regs.x - LOAD8(ARG8);
         break ;
-    case 0xEC: // absolute
+    case 0xCC: // absolute
         result = cpu->regs.x - LOAD8(ARG16);
         break ;
     }
@@ -671,10 +671,10 @@ _call_cmp (struct cpu * cpu, uint8_t op)
         break ;
     case 0xD9: // absolute, y
         result = cpu->regs.a - LOAD8(ARG16 + cpu->regs.y);
-    case 0x81: // indirect, x (indexed indirect)
+    case 0xC1: // indirect, x (indexed indirect)
         result = cpu->regs.a - LOAD8(LOAD16(ARG8 + cpu->regs.x));
         break ;
-    case 0x91: // indirect, y (indirect indexed)
+    case 0xD1: // indirect, y (indirect indexed)
         result = cpu->regs.a - LOAD8(LOAD16(ARG8) + cpu->regs.y);
         break ;
     }
@@ -733,7 +733,7 @@ _call_bne (struct cpu * cpu, uint8_t op)
 }
 
 void
-_call_cld (struct cpu * cpu, uint8_t op)
+_call_cld (struct cpu * cpu, uint8_t op) // OK
 {
     cpu->regs.d = 0;
 }
