@@ -156,6 +156,7 @@ _call_and (struct cpu * cpu, uint8_t op)
 void
 _call_bit (struct cpu * cpu, uint8_t op)
 {
+    
 }
 
 void
@@ -324,6 +325,36 @@ _call_rts (struct cpu * cpu, uint8_t op)
 void
 _call_adc (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0x69: // immediate
+        cpu->regs.a += ARG8;
+        break ;
+    case 0x65: // zero page
+        cpu->regs.a += LOAD8(ARG8);
+        break ;
+    case 0x75: // zero page, x
+        cpu->regs.a += LOAD8(ARG8 + cpu->regs.x);
+        break ;
+    case 0x6D: // absolute
+        cpu->regs.a += LOAD8(ARG16);
+        break ;
+    case 0x7D: // absolute, x
+        cpu->regs.a += LOAD8(ARG16 + cpu->regs.x);
+        break ;
+    case 0x79: // absolute, y
+        cpu->regs.a += LOAD8(ARG16 + cpu->regs.y);
+        break ;
+    case 0x61: // indirect, x
+        cpu->regs.a += LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        break ;
+    case 0x71: // indirect, y
+        cpu->regs.a += LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        break ;
+    }
+    if (cpu->regs.a == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.a & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
@@ -744,6 +775,36 @@ _call_cpx (struct cpu * cpu, uint8_t op)
 void
 _call_sbc (struct cpu * cpu, uint8_t op)
 {
+    switch (op) {
+    case 0xE9: // immediate
+        cpu->regs.a -= ARG8;
+        break ;
+    case 0xE5: // zero page
+        cpu->regs.a -= LOAD8(ARG8);
+        break ;
+    case 0xF5: // zero page, x
+        cpu->regs.a -= LOAD8(ARG8 + cpu->regs.x);
+        break ;
+    case 0xED: // absolute
+        cpu->regs.a -= LOAD8(ARG16);
+        break ;
+    case 0xFD: // absolute, x
+        cpu->regs.a -= LOAD8(ARG16 + cpu->regs.x);
+        break ;
+    case 0xF9: // absolute, y
+        cpu->regs.a -= LOAD8(ARG16 + cpu->regs.y);
+        break ;
+    case 0xE1: // indirect, x
+        cpu->regs.a -= LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        break ;
+    case 0xF1: // indirect, y
+        cpu->regs.a -= LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        break ;
+    }
+    if (cpu->regs.a == 0)
+        cpu->regs.z = 1;
+    if (cpu->regs.a & 0x80)
+        cpu->regs.n = 1;
 }
 
 void
