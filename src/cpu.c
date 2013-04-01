@@ -95,8 +95,8 @@ _call_asl (struct cpu *cpu, uint8_t op)
 void
 _call_php (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.s--;
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.p;
+    cpu->regs.s--;
 }
 
 void
@@ -198,8 +198,8 @@ _call_rol (struct cpu * cpu, uint8_t op)
 void
 _call_plp (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.p = cpu->mem[0x100 + cpu->regs.s];
     cpu->regs.s++;
+    cpu->regs.p = cpu->mem[0x100 + cpu->regs.s];
 }
 
 
@@ -291,8 +291,8 @@ _call_lsr (struct cpu * cpu, uint8_t op)
 void
 _call_pha (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.s--;
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.a;
+    cpu->regs.s--;
 }
 
 void
@@ -329,35 +329,43 @@ _call_rts (struct cpu * cpu, uint8_t op)
 void
 _call_adc (struct cpu * cpu, uint8_t op)
 {
+    uint32_t    temp;
+    uint8_t     value;
+
     switch (op) {
     case 0x69: // immediate
-        cpu->regs.a += ARG8;
+        value += ARG8;
         break ;
     case 0x65: // zero page
-        cpu->regs.a += LOAD8(ARG8);
+        value += LOAD8(ARG8);
         break ;
     case 0x75: // zero page, x
-        cpu->regs.a += LOAD8(ARG8 + cpu->regs.x);
+        value += LOAD8(ARG8 + cpu->regs.x);
         break ;
     case 0x6D: // absolute
-        cpu->regs.a += LOAD8(ARG16);
+        value += LOAD8(ARG16);
         break ;
     case 0x7D: // absolute, x
-        cpu->regs.a += LOAD8(ARG16 + cpu->regs.x);
+        value += LOAD8(ARG16 + cpu->regs.x);
         break ;
     case 0x79: // absolute, y
-        cpu->regs.a += LOAD8(ARG16 + cpu->regs.y);
+        value += LOAD8(ARG16 + cpu->regs.y);
         break ;
     case 0x61: // indirect, x
-        cpu->regs.a += LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        value += LOAD8(LOAD16(ARG8 + cpu->regs.x));
         break ;
     case 0x71: // indirect, y
-        cpu->regs.a += LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        value += LOAD8(LOAD16(ARG8) + cpu->regs.y);
         break ;
     }
+    temp = cpu->regs.a + value + cpu->regs.c;
 
-    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
-    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
+    cpu->regs.v = (!(((cpu->regs.a ^ value)) & 0x80) != 0) && (((cpu->regs.a ^ temp) & 0x80)) != 0 ? 1 : 0;
+    cpu->regs.c = temp > 255 ? 1 : 0;
+    cpu->regs.z = temp == 0 ? 1 : 0;
+    cpu->regs.n = temp & 0x80 ? 1 : 0;
+
+    cpu->regs.a = temp;
 }
 
 void
@@ -398,8 +406,8 @@ _call_ror (struct cpu * cpu, uint8_t op)
 void
 _call_pla (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
     cpu->regs.s++;
+    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
 }
 
 void
@@ -808,35 +816,41 @@ _call_cpx (struct cpu * cpu, uint8_t op)
 void
 _call_sbc (struct cpu * cpu, uint8_t op)
 {
+    int32_t    temp;
+    uint8_t     value;
+
     switch (op) {
     case 0xE9: // immediate
-        cpu->regs.a -= ARG8;
+        value = ARG8;
         break ;
     case 0xE5: // zero page
-        cpu->regs.a -= LOAD8(ARG8);
+        value = LOAD8(ARG8);
         break ;
     case 0xF5: // zero page, x
-        cpu->regs.a -= LOAD8(ARG8 + cpu->regs.x);
+        value = LOAD8(ARG8 + cpu->regs.x);
         break ;
     case 0xED: // absolute
-        cpu->regs.a -= LOAD8(ARG16);
+        value = LOAD8(ARG16);
         break ;
     case 0xFD: // absolute, x
-        cpu->regs.a -= LOAD8(ARG16 + cpu->regs.x);
+        value = LOAD8(ARG16 + cpu->regs.x);
         break ;
     case 0xF9: // absolute, y
-        cpu->regs.a -= LOAD8(ARG16 + cpu->regs.y);
+        value = LOAD8(ARG16 + cpu->regs.y);
         break ;
     case 0xE1: // indirect, x
-        cpu->regs.a -= LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        value = LOAD8(LOAD16(ARG8 + cpu->regs.x));
         break ;
     case 0xF1: // indirect, y
-        cpu->regs.a -= LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        value = LOAD8(LOAD16(ARG8) + cpu->regs.y);
         break ;
     }
+    temp = cpu->regs.a - value - (1 - cpu->regs.c);
 
-    cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
-    cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
+    cpu->regs.v = (((cpu->regs.a ^ temp) & 0x80) != 0 && ((cpu->regs.a ^ value) & 0x80) != 0) ? 1 : 0;
+    cpu->regs.c = temp < 0 ? 1 : 0;
+    cpu->regs.z = temp == 0 ? 1 : 0;
+    cpu->regs.n = temp & 0x80 ? 1 : 0;
 }
 
 void
