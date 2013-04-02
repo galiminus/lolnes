@@ -82,6 +82,28 @@ nes_cmd (struct nes *   nes,
             printf ("run for %d instructions\n", cpu->debug.run);
             break ;
         }
+        else if (!strcmp (action, "ppuinfo")) {
+            printf ("name_table_addr: %01x\n", ppu->name_table_addr);
+            printf ("vertical_write: %d\n", ppu->vertical_write);
+            printf ("sprt_ptn_tbl_addr: %d\n", ppu->sprt_ptn_tbl_addr);
+            printf ("scrn_ptn_tbl_addr: %d\n", ppu->scrn_ptn_tbl_addr);
+            printf ("sprt_size: %d\n", ppu->sprt_size);
+            printf ("master_save_mode: \n", ppu->master_slave_mode);
+            printf ("vblank_enable: %d\n", ppu->vblank_enable);
+            printf ("img_mask: %d\n", ppu->img_mask);
+            printf ("sprt_mask: %d\n", ppu->sprt_mask);
+            printf ("scrn_enable: %d\n", ppu->scrn_enable);
+            printf ("sprt_enable: %d\n", ppu->sprt_enable);
+            printf ("background_color: %01x\n", ppu->background_color);
+            printf ("hit: %d\n", ppu->hit);
+            printf ("vblank: %d\n", ppu->vblank);
+
+            printf ("sprt_memory_addr: %01x\n", ppu->sprt_memory_addr);
+            printf ("sprt_memory_data: %01x\n", ppu->sprt_memory_data);
+            printf ("scrn_scroll_offsets: %01x\n", ppu->scrn_scroll_offsets);
+            printf ("ppu_memory_addr: %01x\n", ppu->ppu_memory_addr);
+            printf ("ppu_memory_data: %01x\n", ppu->ppu_memory_data);
+        }
         else {
             printf ("Unknown command: %s\n", action);
         }
