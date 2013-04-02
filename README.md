@@ -1,0 +1,1 @@
+Toy NES emulator. Well, currently it's only a debugger.
