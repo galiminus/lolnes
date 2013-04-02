@@ -971,11 +971,11 @@ nes_cpu_exec (struct nes * nes,
         cpu->debug.run--;
     }
     if (options & NES_DEBUG && cpu->debug.checkpoint == 0xFFFF && cpu->debug.run == 0) {
-        printf ("\x1b[32m[%04x]\x1b[0m\t \x1b[31m%s\x1b[0m(%02x) ", cpu->regs.pc, opcodes[op].name, (unsigned char)op);
+        printf ("\x1b[32m[%04x]\x1b[0m\t \x1b[31m%s\x1b[0m[%02x]", cpu->regs.pc, opcodes[op].name, (unsigned char)op);
         if (opcodes[op].len == 2) {
-            printf ("\x1b[34m%02x\x1b[0m", ARG8);
+            printf ("(\x1b[34m%02x\x1b[0m)", ARG8);
         } else if (opcodes[op].len == 3) {
-            printf ("\x1b[34m%04x\x1b[0m", ARG16);
+            printf ("(\x1b[34m%04x\x1b[0m)", ARG16);
         }
         printf ("\ta:\x1b[34m%02x\x1b[0m|", cpu->regs.a);
         printf ("x:\x1b[34m%02x\x1b[0m|", cpu->regs.x);
