@@ -120,8 +120,11 @@ _call_jsr (struct cpu * cpu, uint8_t op)
     uint16_t pc;
 
     pc = cpu->regs.pc - 1;
-    cpu->mem[0x100 + cpu->regs.s]   = pc >> 8;
-    cpu->mem[0x100 + --cpu->regs.s] = pc & 0x00FF;
+
+    cpu->mem[0x100 + cpu->regs.s]     = pc >> 8;
+    cpu->mem[0x100 + cpu->regs.s - 1] = pc & 0x00FF;
+    cpu->regs.s -= 2;
+
     cpu->regs.new_pc = ARG16;
 }
 
@@ -162,6 +165,20 @@ _call_and (struct cpu * cpu, uint8_t op)
 void
 _call_bit (struct cpu * cpu, uint8_t op)
 {
+    uint8_t value;
+
+    switch (op) {
+    case 0x24: // zero page
+        value = LOAD8(ARG8);
+        break ;
+    case 0x2C: // absolute
+        value = LOAD8(ARG16);
+        break ;
+    }
+
+    cpu->regs.z = (value & regs->cpu.a) == 0 ? 1 : 0;
+    cpu->regs.n = value & 0x80 ? 1 : 0;
+    cpu->regs.v = value & 0x40 ? 1 : 0;
 }
 
 void
@@ -329,8 +346,10 @@ _call_cli (struct cpu * cpu, uint8_t op)
 void
 _call_rts (struct cpu * cpu, uint8_t op)
 {
-    cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + (++cpu->regs.s)]) << 8;
-    cpu->regs.new_pc |= cpu->mem[0x100 + (++cpu->regs.s)];
+    cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 2]) << 8;
+    cpu->regs.new_pc |= cpu->mem[0x100 + cpu->regs.s + 1];
+    cpu->regs.s += 2;
+
     cpu->regs.new_pc++;
 }
 
@@ -957,6 +976,7 @@ nes_cpu_init (struct nes * nes,
     cpu->regs.new_pc = cpu->regs.pc;
     cpu->debug.checkpoint = 0xFFFF;
     cpu->debug.run = 0;
+    cpu->debug.count = 1;
 }
 
 int
@@ -978,7 +998,8 @@ nes_cpu_exec (struct nes * nes,
         cpu->debug.run--;
     }
     if (options & NES_DEBUG && cpu->debug.checkpoint == 0xFFFF && cpu->debug.run == 0) {
-        printf ("\x1b[32m[%04x>%04x]\x1b[0m\t \x1b[31m%s\x1b[0m[%02x]", cpu->regs.pc, cpu->regs.new_pc, opcodes[op].name, (unsigned char)op);
+        printf ("\x1b[32m[%04x>%04x]\x1b[0m\t \x1b[31m%s\x1b[0m[%02x]",
+                cpu->regs.pc, cpu->regs.new_pc, opcodes[op].name, (unsigned char)op);
         if (opcodes[op].len == 2) {
             printf ("(\x1b[34m%02x\x1b[0m)", ARG8);
         } else if (opcodes[op].len == 3) {
@@ -994,8 +1015,11 @@ nes_cpu_exec (struct nes * nes,
         printf ("d:\x1b[34m%01x\x1b[0m|", cpu->regs.d);
         printf ("b:\x1b[34m%01x\x1b[0m|", cpu->regs.b);
         printf ("v:\x1b[34m%01x\x1b[0m|", cpu->regs.v);
-        printf ("n:\x1b[34m%01x\x1b[0m\n", cpu->regs.n);
+        printf ("n:\x1b[34m%01x\x1b[0m", cpu->regs.n);
+
+        printf("\t\t- %d\n", cpu->debug.count);
     }
 
+    cpu->debug.count++;
     cpu->regs.pc = cpu->regs.new_pc;
 }

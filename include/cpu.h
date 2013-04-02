@@ -36,6 +36,7 @@ struct cpu
     struct {
         uint16_t checkpoint;
         uint32_t run;
+        uint32_t count;
     } debug;
 };
 

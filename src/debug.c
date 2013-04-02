@@ -63,7 +63,7 @@ nes_cmd (struct nes *   nes,
             _nes_put_memory (cpu->mem, offset, size);
         }
         else if (!strcmp (action, "stack")) {
-            _nes_put_memory (cpu->mem, 0x100, 0x1FF);
+            _nes_put_memory (cpu->mem, 0x100, 0x100);
         }
         else if (!strcmp (action, "checkpoint")) {
             if (argc < 1) {
