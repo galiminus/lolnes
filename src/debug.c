@@ -34,6 +34,10 @@ nes_cmd (struct nes *   nes,
     char *              argv[16];
     unsigned int        argc;
 
+    if (cpu->debug.run > 0) {
+        return (0);
+    }
+
     for (;;) {
         printf (">>> ");
         fgets (cmd, sizeof (cmd), stdin);
@@ -65,6 +69,15 @@ nes_cmd (struct nes *   nes,
             }
             cpu->debug.checkpoint = strtoul(argv[0], NULL, 16);
             printf ("checkpoint set to %04x\n", cpu->debug.checkpoint);
+        }
+        else if (!strcmp (action, "run")) {
+            if (argc < 1) {
+                printf ("number of instructions required\n");
+                continue ;
+            }
+            cpu->debug.run = strtoul(argv[0], NULL, 10);
+            printf ("run for %d instructions\n", cpu->debug.run);
+            break ;
         }
         else {
             printf ("Unknown command: %s\n", action);
