@@ -14,7 +14,7 @@
 #define ARG16           (((uint16_t)((cpu)->mem[(cpu)->regs.pc + 2])) << 8 | ARG8)
 
 #define LOAD8(n)        (cpu)->mem[(n)]
-#define LOAD16(n)       (LOAD8(n + 1) << 8 | LOAD8(n))
+#define LOAD16(n)       ((uint16_t)(LOAD8(n + 1)) << 8 | LOAD8(n))
 
 #define STORE8(n, v)    (cpu)->mem[(n)] = (v)
 
@@ -117,9 +117,12 @@ _call_clc (struct cpu * cpu, uint8_t op)
 void
 _call_jsr (struct cpu * cpu, uint8_t op)
 {
-    cpu->mem[++cpu->regs.s] = cpu->regs.pc >> 8;
-    cpu->mem[++cpu->regs.s] = cpu->regs.pc & 0x00FF;
-    cpu->regs.pc = ARG16 - 1;
+    uint16_t pc;
+
+    pc = cpu->regs.pc - 1;
+    cpu->mem[0x100 + cpu->regs.s]   = pc >> 8;
+    cpu->mem[0x100 + --cpu->regs.s] = pc & 0x00FF;
+    cpu->regs.new_pc = ARG16;
 }
 
 void
@@ -326,6 +329,9 @@ _call_cli (struct cpu * cpu, uint8_t op)
 void
 _call_rts (struct cpu * cpu, uint8_t op)
 {
+    cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + (++cpu->regs.s)]) << 8;
+    cpu->regs.new_pc |= cpu->mem[0x100 + (++cpu->regs.s)];
+    cpu->regs.new_pc++;
 }
 
 void
@@ -336,28 +342,28 @@ _call_adc (struct cpu * cpu, uint8_t op)
 
     switch (op) {
     case 0x69: // immediate
-        value += ARG8;
+        value = ARG8;
         break ;
     case 0x65: // zero page
-        value += LOAD8(ARG8);
+        value = LOAD8(ARG8);
         break ;
     case 0x75: // zero page, x
-        value += LOAD8(ARG8 + cpu->regs.x);
+        value = LOAD8(ARG8 + cpu->regs.x);
         break ;
     case 0x6D: // absolute
-        value += LOAD8(ARG16);
+        value = LOAD8(ARG16);
         break ;
     case 0x7D: // absolute, x
-        value += LOAD8(ARG16 + cpu->regs.x);
+        value = LOAD8(ARG16 + cpu->regs.x);
         break ;
     case 0x79: // absolute, y
-        value += LOAD8(ARG16 + cpu->regs.y);
+        value = LOAD8(ARG16 + cpu->regs.y);
         break ;
     case 0x61: // indirect, x
-        value += LOAD8(LOAD16(ARG8 + cpu->regs.x));
+        value = LOAD8(LOAD16(ARG8 + cpu->regs.x));
         break ;
     case 0x71: // indirect, y
-        value += LOAD8(LOAD16(ARG8) + cpu->regs.y);
+        value = LOAD8(LOAD16(ARG8) + cpu->regs.y);
         break ;
     }
     temp = cpu->regs.a + value + cpu->regs.c;
@@ -950,6 +956,7 @@ nes_cpu_init (struct nes * nes,
 
     cpu->regs.new_pc = cpu->regs.pc;
     cpu->debug.checkpoint = 0xFFFF;
+    cpu->debug.run = 0;
 }
 
 int
@@ -971,7 +978,7 @@ nes_cpu_exec (struct nes * nes,
         cpu->debug.run--;
     }
     if (options & NES_DEBUG && cpu->debug.checkpoint == 0xFFFF && cpu->debug.run == 0) {
-        printf ("\x1b[32m[%04x]\x1b[0m\t \x1b[31m%s\x1b[0m[%02x]", cpu->regs.pc, opcodes[op].name, (unsigned char)op);
+        printf ("\x1b[32m[%04x>%04x]\x1b[0m\t \x1b[31m%s\x1b[0m[%02x]", cpu->regs.pc, cpu->regs.new_pc, opcodes[op].name, (unsigned char)op);
         if (opcodes[op].len == 2) {
             printf ("(\x1b[34m%02x\x1b[0m)", ARG8);
         } else if (opcodes[op].len == 3) {
