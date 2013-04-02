@@ -176,7 +176,7 @@ _call_bit (struct cpu * cpu, uint8_t op)
         break ;
     }
 
-    cpu->regs.z = (value & regs->cpu.a) == 0 ? 1 : 0;
+    cpu->regs.z = (value & cpu->regs.a) == 0 ? 1 : 0;
     cpu->regs.n = value & 0x80 ? 1 : 0;
     cpu->regs.v = value & 0x40 ? 1 : 0;
 }
