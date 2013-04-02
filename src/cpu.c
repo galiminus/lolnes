@@ -949,15 +949,7 @@ nes_cpu_init (struct nes * nes,
     unsigned int        p;
     unsigned int        i;
 
-    memset (cpu->mem, 0xFF, 0x2000);
-    for (p = 0; p < 4; p++) {
-        i = p * 0x800;
-
-        cpu->mem[0x008 + i] = 0xF7;
-        cpu->mem[0x009 + i] = 0xEF;
-        cpu->mem[0x00A + i] = 0xDF;
-        cpu->mem[0x00F + i] = 0xBF;
-    }
+    memset (cpu->mem, 0x00, 0xFFFF);
     memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
 
     if (nes->header.prg_rom_size == 1) {
