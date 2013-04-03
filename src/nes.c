@@ -11,6 +11,7 @@
 #include "nes.h"
 #include "cpu.h"
 #include "ppu.h"
+#include "debug.h"
 
 int _nes_parse_header (const char *, size_t, struct nes *);
 int _nes_parse_trainer (const char *, size_t, struct nes *);
@@ -22,8 +23,6 @@ nes_open (const char *  path,
           struct nes *  nes)
 {
     struct stat stat;
-
-    char *      rom;
 
     nes->fd = open (path, O_RDONLY);
     if (nes->fd == -1) {

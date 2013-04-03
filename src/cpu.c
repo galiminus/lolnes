@@ -946,9 +946,6 @@ void
 nes_cpu_init (struct nes * nes,
               struct cpu * cpu)
 {
-    unsigned int        p;
-    unsigned int        i;
-
     memset (cpu->mem, 0x00, 0xFFFF);
     memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
 
@@ -1014,4 +1011,6 @@ nes_cpu_exec (struct nes * nes,
 
     cpu->debug.count++;
     cpu->regs.pc = cpu->regs.new_pc;
+
+    return (0);
 }

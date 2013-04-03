@@ -6,11 +6,11 @@
 #include "ppu.h"
 
 void
-_nes_put_memory (const char *   memory,
-                 size_t         offset,
-                 size_t         size)
+_nes_put_memory (const uint8_t * memory,
+                 unsigned int    offset,
+                 unsigned int    size)
 {
-    size_t      i;
+    unsigned int        i;
 
     printf ("%04x: ", offset);
     for (i = 0; i < size; i++) {
@@ -88,7 +88,7 @@ nes_cmd (struct nes *   nes,
             printf ("sprt_ptn_tbl_addr: %d\n", ppu->sprt_ptn_tbl_addr);
             printf ("scrn_ptn_tbl_addr: %d\n", ppu->scrn_ptn_tbl_addr);
             printf ("sprt_size: %d\n", ppu->sprt_size);
-            printf ("master_save_mode: \n", ppu->master_slave_mode);
+            printf ("master_save_mode: %d\n", ppu->master_slave_mode);
             printf ("vblank_enable: %d\n", ppu->vblank_enable);
             printf ("img_mask: %d\n", ppu->img_mask);
             printf ("sprt_mask: %d\n", ppu->sprt_mask);
