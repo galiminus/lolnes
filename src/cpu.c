@@ -556,7 +556,7 @@ _call_sed (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_non (struct cpu * cpu, uint16_t  param)
+_call_inv (struct cpu * cpu, uint16_t  param)
 {
     (void) param;
 }
@@ -598,34 +598,47 @@ nes_cpu_exec (struct nes * nes,
     op = cpu->mem[cpu->regs.pc + 1];
     switch (opcodes[op].addr_mode) {
     case ADDR_MODE_ZPA:  // zero page mode
+        cpu->regs.new_pc += 2;
         param = ARG8;                                   break ;
     case ADDR_MODE_REL:  // relative mode
+        cpu->regs.new_pc += 2;
         param = cpu->regs.pc + (int8_t)ARG8;            break ;
     case ADDR_MODE_ABS:  // absolute
+        cpu->regs.new_pc += 3;
         param = ARG16;                                  break ;
     case ADDR_MODE_ACC:  // accumulator
+        cpu->regs.new_pc += 1;
         param = cpu->regs.a;                            break ;
     case ADDR_MODE_IMM:  // immediate mode
+        cpu->regs.new_pc += 2;
         param = cpu->regs.pc + 1;                       break ;
     case ADDR_MODE_ZPX:  // zero page, x
+        cpu->regs.new_pc += 2;
         param = ARG8 + cpu->regs.x;                     break ;
     case ADDR_MODE_ZPY:  // zero page, y
+        cpu->regs.new_pc += 2;
         param = ARG8 + cpu->regs.y;                     break ;
     case ADDR_MODE_ABX:  // absolute, x
+        cpu->regs.new_pc += 3;
         param = ARG16 + cpu->regs.x;                    break ;
     case ADDR_MODE_ABY:  // absolute, y
+        cpu->regs.new_pc += 3;
         param = ARG16 + cpu->regs.y;                    break ;
     case ADDR_MODE_INX: // indirect, x (indexed indirect)
+        cpu->regs.new_pc += 2;
         param = LOAD16(ARG8 + cpu->regs.x);             break ;
     case ADDR_MODE_INY: // indirect, y (indirect indexed)
+        cpu->regs.new_pc += 2;
         param = LOAD16(ARG8) + cpu->regs.y;             break ;
     case ADDR_MODE_IAB: // indirect absolute
+        cpu->regs.new_pc += 3;
         param = LOAD16(ARG16);                          break ;
     default:
+        cpu->regs.new_pc += 1;
         param = 0;
     }
 
-    cpu->regs.new_pc += opcodes[op].len;
+//    cpu->regs.new_pc += opcodes[op].len;
     opcodes[op].call (cpu, param);
 
     if (cpu->debug.checkpoint == cpu->regs.pc) {
@@ -641,6 +654,8 @@ nes_cpu_exec (struct nes * nes,
             printf ("(\x1b[34m%02x\x1b[0m)  ", ARG8);
         } else if (opcodes[op].len == 3) {
             printf ("(\x1b[34m%04x\x1b[0m)", ARG16);
+        } else if (!strcmp(opcodes[op].name, "INV")) {
+            printf ("\x1b[31mALID\x1b[0m  ");
         } else {
             printf ("      ");
         }
