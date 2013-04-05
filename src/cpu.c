@@ -20,6 +20,9 @@ void
 _call_brk (struct cpu * cpu, uint16_t  param)
 {
     cpu->regs.new_pc += 2;
+    cpu->regs.b = 1;
+
+    nes_cpu_interrupt (cpu, INTERRUPT_TYPE_BRK);
 }
 
 void
@@ -42,10 +45,8 @@ _call_asl (struct cpu *cpu, uint16_t  param)
 }
 
 void
-_call_php (struct cpu * cpu, uint16_t  param)
+_call_php (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.p;
     cpu->regs.s--;
 }
@@ -53,15 +54,12 @@ _call_php (struct cpu * cpu, uint16_t  param)
 void
 _call_bpl (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.n == 0)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.n == 0) cpu->regs.new_pc = param;
 }
 
 void
-_call_clc (struct cpu * cpu, uint16_t  param)
+_call_clc (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.c = 0;
 }
 
@@ -70,7 +68,7 @@ _call_jsr (struct cpu * cpu, uint16_t  param)
 {
     uint16_t pc;
 
-    pc = cpu->regs.pc - 1;
+    pc = cpu->regs.pc;
 
     cpu->mem[0x100 + cpu->regs.s]     = pc >> 8;
     cpu->mem[0x100 + cpu->regs.s - 1] = pc & 0x00FF;
@@ -111,10 +109,8 @@ _call_rol (struct cpu * cpu, uint16_t  param)
 
 
 void
-_call_plp (struct cpu * cpu, uint16_t  param)
+_call_plp (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.s++;
     cpu->regs.p = cpu->mem[0x100 + cpu->regs.s];
 }
@@ -123,16 +119,13 @@ _call_plp (struct cpu * cpu, uint16_t  param)
 void
 _call_bmi (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.n == 1)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.n == 1) cpu->regs.new_pc = param;
 }
 
 
 void
-_call_sec (struct cpu * cpu, uint16_t  param)
+_call_sec (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.c = 1;
 }
 
@@ -140,6 +133,10 @@ _call_sec (struct cpu * cpu, uint16_t  param)
 void
 _call_rti (struct cpu * cpu, uint16_t  param)
 {
+    cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 3]) << 8;
+    cpu->regs.new_pc |= cpu->mem[0x100 + cpu->regs.s + 2];
+    cpu->regs.p = cpu->mem[0x100 + cpu->regs.s + 1];
+    cpu->regs.s += 3;
 }
 
 
@@ -164,8 +161,6 @@ _call_lsr (struct cpu * cpu, uint16_t  param)
 void
 _call_pha (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.a;
     cpu->regs.s--;
 }
@@ -179,8 +174,7 @@ _call_jmp (struct cpu * cpu, uint16_t  param)
 void
 _call_bvc (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.v == 0)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.v == 0) cpu->regs.new_pc = param;
 }
 
 void
@@ -192,13 +186,9 @@ _call_cli (struct cpu * cpu, uint16_t  param)
 void
 _call_rts (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 2]) << 8;
     cpu->regs.new_pc |= cpu->mem[0x100 + cpu->regs.s + 1];
     cpu->regs.s += 2;
-
-    cpu->regs.new_pc++;
 }
 
 void
@@ -231,8 +221,6 @@ _call_ror (struct cpu * cpu, uint16_t  param)
 void
 _call_pla (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.s++;
     cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
 }
@@ -240,15 +228,12 @@ _call_pla (struct cpu * cpu, uint16_t  param)
 void
 _call_bvs (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.n == 1)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.n == 1) cpu->regs.new_pc = param;
 }
 
 void
-_call_sei (struct cpu * cpu, uint16_t  param)
+_call_sei (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.i = 1;
 }
 
@@ -271,10 +256,8 @@ _call_sty (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_dey (struct cpu * cpu, uint16_t  param)
+_call_dey (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.y--;
 
     cpu->regs.z = cpu->regs.y == 0 ? 1 : 0;
@@ -282,10 +265,8 @@ _call_dey (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_txa (struct cpu * cpu, uint16_t  param)
+_call_txa (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.a = cpu->regs.x;
 
     cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
@@ -293,10 +274,8 @@ _call_txa (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_tya (struct cpu * cpu, uint16_t  param)
+_call_tya (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.a = cpu->regs.y;
 
     cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
@@ -306,15 +285,12 @@ _call_tya (struct cpu * cpu, uint16_t  param)
 void
 _call_bcc (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.c == 0)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.c == 0) cpu->regs.new_pc = param;
 }
 
 void
-_call_txs (struct cpu * cpu, uint16_t  param)
+_call_txs (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.s = cpu->regs.x;
 }
 
@@ -348,8 +324,6 @@ _call_ldy (struct cpu * cpu, uint16_t  param)
 void
 _call_tay (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.y = cpu->regs.a;
 
     cpu->regs.z = cpu->regs.y == 0 ? 1 : 0;
@@ -359,8 +333,6 @@ _call_tay (struct cpu * cpu, uint16_t  param)
 void
 _call_tax (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.x = cpu->regs.a;
 
     cpu->regs.z = cpu->regs.x == 0 ? 1 : 0;
@@ -370,23 +342,18 @@ _call_tax (struct cpu * cpu, uint16_t  param)
 void
 _call_bcs (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.c == 1)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.c == 1) cpu->regs.new_pc = param;
 }
 
 void
-_call_clv (struct cpu * cpu, uint16_t  param)
+_call_clv (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.v = 0;
 }
 
 void
-_call_tsx (struct cpu * cpu, uint16_t  param)
+_call_tsx (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.x = cpu->regs.s;
 }
 
@@ -442,10 +409,8 @@ _call_dec (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_iny (struct cpu * cpu, uint16_t  param)
+_call_iny (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.y++;
 
     cpu->regs.z = cpu->regs.y == 0 ? 1 : 0;
@@ -453,10 +418,8 @@ _call_iny (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_dex (struct cpu * cpu, uint16_t  param)
+_call_dex (struct cpu * cpu, uint16_t  _param)
 {
-    (void) param;
-
     cpu->regs.x--;
 
     cpu->regs.z = cpu->regs.x == 0 ? 1 : 0;
@@ -466,15 +429,12 @@ _call_dex (struct cpu * cpu, uint16_t  param)
 void
 _call_bne (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.z == 0)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.z == 0) cpu->regs.new_pc = param;
 }
 
 void
 _call_cld (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.d = 0;
 }
 
@@ -525,8 +485,6 @@ _call_inc (struct cpu * cpu, uint16_t  param)
 void
 _call_inx (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.x++;
 
     cpu->regs.z = cpu->regs.x == 0 ? 1 : 0;
@@ -536,29 +494,23 @@ _call_inx (struct cpu * cpu, uint16_t  param)
 void
 _call_nop (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-    return ;
 }
 
 void
 _call_beq (struct cpu * cpu, uint16_t  param)
 {
-    if (cpu->regs.z == 1)
-        cpu->regs.new_pc = param;
+    if (cpu->regs.z == 1) cpu->regs.new_pc = param;
 }
 
 void
 _call_sed (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
-
     cpu->regs.d = 1;
 }
 
 void
 _call_inv (struct cpu * cpu, uint16_t  param)
 {
-    (void) param;
 }
 
 void
@@ -587,6 +539,34 @@ nes_cpu_init (struct nes * nes,
     cpu->debug.count = 1;
 }
 
+void
+nes_cpu_interrupt (struct cpu *         cpu,
+                   enum interrupt_type  interrupt_type)
+{
+    uint16_t    addr;
+
+    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.pc >> 8;
+    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.pc & 0x00FF;
+    cpu->mem[0x100 + cpu->regs.s - 2] = cpu->regs.p;
+    cpu->regs.s -= 3;
+
+    switch (interrupt_type) {
+    case INTERRUPT_TYPE_NMI:
+        addr = LOAD16(0xFFFA);
+        break ;
+    case INTERRUPT_TYPE_RST:
+        addr = LOAD16(0xFFFC);
+        break ;
+    case INTERRUPT_TYPE_BRK:
+        if (!cpu->regs.i)
+            addr = LOAD16(0xFFFE);
+        break ;
+    }
+    cpu->regs.new_pc = addr - 1;
+
+    printf ("INTERRUPT! %d -> %04x\n", interrupt_type, cpu->regs.new_pc);
+}
+
 int
 nes_cpu_exec (struct nes * nes,
               struct cpu * cpu,
@@ -598,47 +578,34 @@ nes_cpu_exec (struct nes * nes,
     op = cpu->mem[cpu->regs.pc + 1];
     switch (opcodes[op].addr_mode) {
     case ADDR_MODE_ZPA:  // zero page mode
-        cpu->regs.new_pc += 2;
         param = ARG8;                                   break ;
     case ADDR_MODE_REL:  // relative mode
-        cpu->regs.new_pc += 2;
         param = cpu->regs.pc + (int8_t)ARG8;            break ;
     case ADDR_MODE_ABS:  // absolute
-        cpu->regs.new_pc += 3;
         param = ARG16;                                  break ;
     case ADDR_MODE_ACC:  // accumulator
-        cpu->regs.new_pc += 1;
         param = cpu->regs.a;                            break ;
     case ADDR_MODE_IMM:  // immediate mode
-        cpu->regs.new_pc += 2;
-        param = cpu->regs.pc + 1;                       break ;
+        param = cpu->regs.pc + 2;                       break ;
     case ADDR_MODE_ZPX:  // zero page, x
-        cpu->regs.new_pc += 2;
         param = ARG8 + cpu->regs.x;                     break ;
     case ADDR_MODE_ZPY:  // zero page, y
-        cpu->regs.new_pc += 2;
         param = ARG8 + cpu->regs.y;                     break ;
     case ADDR_MODE_ABX:  // absolute, x
-        cpu->regs.new_pc += 3;
         param = ARG16 + cpu->regs.x;                    break ;
     case ADDR_MODE_ABY:  // absolute, y
-        cpu->regs.new_pc += 3;
         param = ARG16 + cpu->regs.y;                    break ;
     case ADDR_MODE_INX: // indirect, x (indexed indirect)
-        cpu->regs.new_pc += 2;
         param = LOAD16(ARG8 + cpu->regs.x);             break ;
     case ADDR_MODE_INY: // indirect, y (indirect indexed)
-        cpu->regs.new_pc += 2;
         param = LOAD16(ARG8) + cpu->regs.y;             break ;
     case ADDR_MODE_IAB: // indirect absolute
-        cpu->regs.new_pc += 3;
         param = LOAD16(ARG16);                          break ;
     default:
-        cpu->regs.new_pc += 1;
         param = 0;
     }
 
-//    cpu->regs.new_pc += opcodes[op].len;
+    cpu->regs.new_pc += opcodes[op].len;
     opcodes[op].call (cpu, param);
 
     if (cpu->debug.checkpoint == cpu->regs.pc) {

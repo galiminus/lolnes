@@ -27,8 +27,9 @@ nes_ppu_exec (struct nes *      nes,
     ppu->ppu_memory_addr = cpu->mem[0x2006];
     ppu->ppu_memory_data = cpu->mem[0x2007];
 
-    if (cpu->debug.count % 10) {
+    if (!(cpu->debug.count % 50000)) {
         ppu->vblank ^= 1;
+        nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
     }
 
     cpu->mem[0x2000] = ppu->c_regs_1;

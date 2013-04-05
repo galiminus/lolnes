@@ -3,6 +3,12 @@
 
 #include "nes.h"
 
+enum interrupt_type {
+    INTERRUPT_TYPE_NMI,
+    INTERRUPT_TYPE_RST,
+    INTERRUPT_TYPE_BRK
+};
+
 struct cpu
 {
     uint8_t     mem[0x10000];
@@ -42,5 +48,6 @@ struct cpu
 
 void nes_cpu_init(struct nes *, struct cpu *);
 int nes_cpu_exec(struct nes *, struct cpu *, uint32_t);
+void nes_cpu_interrupt(struct cpu *, enum interrupt_type);
 
 #endif /* !__CPU_H__ */
