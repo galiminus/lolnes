@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <allegro5/allegro.h>
+
 struct nes
 {
     char *      rom;
@@ -90,10 +92,14 @@ struct nes
     const char *        trainer;
     const char *        prg_rom;
     const char *        chr_rom;
+
+    ALLEGRO_DISPLAY *           display;
+    ALLEGRO_EVENT_QUEUE *       event_queue;
 };
 
 #define NES_DEBUG 0x01
 
+int nes_init (struct nes *);
 int nes_open (const char *, struct nes *);
 int nes_parse (const char *, size_t, struct nes *);
 int nes_exec (struct nes *, uint32_t);

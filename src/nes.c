@@ -19,6 +19,16 @@ int _nes_parse_prg_rom (const char *, size_t, struct nes *);
 int _nes_parse_chr_rom (const char *, size_t, struct nes *);
 
 int
+nes_init (struct nes *  nes)
+{
+    if (!al_init ()) {
+        fprintf (stderr, "failed to initialize allegro!\n");
+        return (-1);
+    }
+    return (0);
+}
+
+int
 nes_open (const char *  path,
           struct nes *  nes)
 {
