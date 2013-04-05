@@ -10,13 +10,11 @@
 
 #include "opcodes.h"
 
-#define ARG8            (cpu)->mem[(cpu)->regs.pc + 1]
-#define ARG16           (((uint16_t)((cpu)->mem[(cpu)->regs.pc + 2])) << 8 | ARG8)
+#define ARG8            (cpu)->mem[(cpu)->regs.pc + 2]
+#define ARG16           (((uint16_t)((cpu)->mem[(cpu)->regs.pc + 3])) << 8 | ARG8)
 
 #define LOAD8(n)        (cpu)->mem[(n)]
 #define LOAD16(n)       ((uint16_t)(LOAD8(n + 1)) << 8 | LOAD8(n))
-
-#define STORE8(n, v)    (cpu)->mem[(n)] = (v)
 
 void
 _call_brk (struct cpu * cpu, uint16_t  param)
@@ -25,7 +23,7 @@ _call_brk (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_ora (struct cpu * cpu, uint16_t  param) // OK
+_call_ora (struct cpu * cpu, uint16_t  param)
 {
     cpu->regs.a |= LOAD8(param);
 
@@ -53,7 +51,7 @@ _call_php (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_bpl (struct cpu * cpu, uint16_t  param) // OK
+_call_bpl (struct cpu * cpu, uint16_t  param)
 {
     if (cpu->regs.n == 0)
         cpu->regs.new_pc = param;
@@ -78,7 +76,7 @@ _call_jsr (struct cpu * cpu, uint16_t  param)
     cpu->mem[0x100 + cpu->regs.s - 1] = pc & 0x00FF;
     cpu->regs.s -= 2;
 
-    cpu->regs.new_pc = ARG16;
+    cpu->regs.new_pc = ARG16 - 1;
 }
 
 void
@@ -175,7 +173,7 @@ _call_pha (struct cpu * cpu, uint16_t  param)
 void
 _call_jmp (struct cpu * cpu, uint16_t  param)
 {
-    cpu->regs.new_pc = LOAD16(param);
+    cpu->regs.new_pc = param - 1;
 }
 
 void
@@ -257,19 +255,19 @@ _call_sei (struct cpu * cpu, uint16_t  param)
 void
 _call_sta (struct cpu * cpu, uint16_t  param)
 {
-    STORE8(LOAD8(param), cpu->regs.a);
+    cpu->mem[LOAD8(param)] = cpu->regs.a;
 }
 
 void
 _call_stx (struct cpu * cpu, uint16_t  param)
 {
-    STORE8(LOAD8(param), cpu->regs.x);
+    cpu->mem[LOAD8(param)] = cpu->regs.x;
 }
 
 void
 _call_sty (struct cpu * cpu, uint16_t  param)
 {
-    STORE8(LOAD8(param), cpu->regs.y);
+    cpu->mem[LOAD8(param)] = cpu->regs.y;
 }
 
 void
@@ -330,7 +328,7 @@ _call_lda (struct cpu * cpu, uint16_t  param)
 }
 
 void
-_call_ldx (struct cpu * cpu, uint16_t  param) // OK
+_call_ldx (struct cpu * cpu, uint16_t  param)
 {
     cpu->regs.x = LOAD8(param);
 
@@ -339,7 +337,7 @@ _call_ldx (struct cpu * cpu, uint16_t  param) // OK
 }
 
 void
-_call_ldy (struct cpu * cpu, uint16_t  param) // OK
+_call_ldy (struct cpu * cpu, uint16_t  param)
 {
     cpu->regs.y = LOAD8(param);
 
@@ -561,8 +559,6 @@ void
 _call_non (struct cpu * cpu, uint16_t  param)
 {
     (void) param;
-
-    exit(1);
 }
 
 void
@@ -574,10 +570,10 @@ nes_cpu_init (struct nes * nes,
 
     if (nes->header.prg_rom_size == 1) {
         memcpy (&cpu->mem[0xC000], nes->prg_rom, 16384);
-        cpu->regs.pc = 0xC000;
+        cpu->regs.pc = 0xC000 - 1;
     } else {
         memcpy (&cpu->mem[0x8000], nes->prg_rom, nes->header.prg_rom_size * 16384);
-        cpu->regs.pc = 0x8000;
+        cpu->regs.pc = 0x8000 - 1;
     }
     cpu->regs.a = 0;
     cpu->regs.x = 0;
@@ -599,7 +595,7 @@ nes_cpu_exec (struct nes * nes,
     uint8_t             op;
     uint16_t            param;
 
-    op = cpu->mem[cpu->regs.pc];
+    op = cpu->mem[cpu->regs.pc + 1];
     switch (opcodes[op].addr_mode) {
     case ADDR_MODE_ZPA:  // zero page mode
         param = ARG8;                                   break ;
@@ -640,7 +636,7 @@ nes_cpu_exec (struct nes * nes,
     }
     if (options & NES_DEBUG && cpu->debug.checkpoint == 0xFFFF && cpu->debug.run == 0) {
         printf ("\x1b[32m[%04x>%04x]\x1b[0m[%02x]\t \x1b[31m%s\x1b[0m",
-                cpu->regs.pc, cpu->regs.new_pc, (unsigned char)op, opcodes[op].name);
+                cpu->regs.pc + 1, cpu->regs.new_pc + 1, (unsigned char)op, opcodes[op].name);
         if (opcodes[op].len == 2) {
             printf ("(\x1b[34m%02x\x1b[0m)  ", ARG8);
         } else if (opcodes[op].len == 3) {
