@@ -15,8 +15,11 @@ _load8 (struct cpu * cpu, uint16_t addr)
 {
     uint8_t value = cpu->mem[addr];
 
-    if (addr == 0x2002)
+    switch (addr) {
+    case 0x2002:
         cpu->mem[0x2002] &= 0x7F; // clear the vblank flag
+        break ;
+    }
 
     return (value);
 }
@@ -30,6 +33,24 @@ _load16 (struct cpu * cpu, uint16_t addr)
 void
 _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
 {
+    switch (addr) {
+    case 0x2000:
+        if (param & 0x80) nes_ppu_vblank_interrupt (cpu, &cpu->ppu);
+    case 0x2003:
+        nes_ppu_spr_ram_set_ptr (cpu, &cpu->ppu, param);
+    case 0x2004:
+        nes_ppu_spr_ram_load (cpu, &cpu->ppu, param);
+    case 0x2005:
+        break ;
+    case 0x2006:
+        nes_ppu_vram_set_ptr (cpu, &cpu->ppu, param);
+    case 0x2007:
+        nes_ppu_vram_load (cpu, &cpu->ppu, param);
+    case 0x4014:
+        nes_ppu_dma (cpu, &cpu->ppu, param);
+        break ;
+    }
+
     cpu->mem[addr] = param;
 }
 
@@ -493,12 +514,13 @@ _call_cpx (struct cpu * cpu, uint16_t  param)
 void
 _call_sbc (struct cpu * cpu, uint16_t  param)
 {
-    int32_t    temp;
+    int32_t     temp;
+    uint8_t     value = _load8 (cpu, param);
 
-    temp = cpu->regs.a - _load8 (cpu, param) - (1 - cpu->regs.c);
+    temp = cpu->regs.a - value - (1 - cpu->regs.c);
 
     cpu->regs.v = (((cpu->regs.a ^ temp) & 0x80) != 0 &&
-                   ((cpu->regs.a ^ _load8 (cpu, param)) & 0x80) != 0) ? 1 : 0;
+                   ((cpu->regs.a ^ value) & 0x80) != 0) ? 1 : 0;
     cpu->regs.c = temp < 0 ? 1 : 0;
     cpu->regs.z = temp == 0 ? 1 : 0;
     cpu->regs.n = temp & 0x80 ? 1 : 0;
@@ -572,6 +594,8 @@ nes_cpu_init (struct nes * nes,
 
     nes_cpu_interrupt (cpu, INTERRUPT_TYPE_RST);
     cpu->regs.pc = cpu->regs.new_pc;
+
+    nes_ppu_init (nes, cpu, &cpu->ppu);
 }
 
 void
@@ -715,5 +739,6 @@ nes_cpu_exec (struct nes * nes,
     cpu->debug.count++;
     cpu->regs.pc = cpu->regs.new_pc;
 
+    nes_ppu_exec (nes, cpu, &cpu->ppu, options);
     return (0);
 }

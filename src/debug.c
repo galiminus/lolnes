@@ -113,12 +113,6 @@ nes_cmd (struct nes *   nes,
             printf ("background_color: %01x\n", ppu->background_color);
             printf ("hit: %d\n", ppu->hit);
             printf ("vblank: %d\n", ppu->vblank);
-
-            printf ("sprt_memory_addr: %01x\n", ppu->sprt_memory_addr);
-            printf ("sprt_memory_data: %01x\n", ppu->sprt_memory_data);
-            printf ("scrn_scroll_offsets: %01x\n", ppu->scrn_scroll_offsets);
-            printf ("ppu_memory_addr: %01x\n", ppu->ppu_memory_addr);
-            printf ("ppu_memory_data: %01x\n", ppu->ppu_memory_data);
         }
         else {
             printf ("Unknown command: %s\n", action);

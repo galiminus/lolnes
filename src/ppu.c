@@ -12,7 +12,7 @@ nes_ppu_init (struct nes * nes,
 {
     cpu->mem[0x2002] = 0xF0;
 
-    ppu->next_frame = 16;
+    ppu->next_frame = FRAME_DELAY;
     return ;
 }
 
@@ -25,19 +25,10 @@ nes_ppu_exec (struct nes *      nes,
     ppu->c_regs_1 = cpu->mem[0x2000];
     ppu->c_regs_2 = cpu->mem[0x2001];
     ppu->s_regs = cpu->mem[0x2002];
-    ppu->sprt_memory_addr = cpu->mem[0x2003];
-    ppu->sprt_memory_data = cpu->mem[0x2004];
-    ppu->scrn_scroll_offsets = cpu->mem[0x2005];
-    ppu->ppu_memory_addr = cpu->mem[0x2006];
-    ppu->ppu_memory_data = cpu->mem[0x2007];
 
     ppu->next_frame--;
-    if (ppu->next_frame == 0 || ppu->vblank_enable) {
-        ppu->vblank = 1;
-        ppu->vblank_enable = 0;
-
-        nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
-
+    if (ppu->next_frame == 0) {
+        nes_ppu_vblank_interrupt (cpu, ppu);
         ppu->next_frame = FRAME_DELAY;
     } else {
         ppu->vblank = 0;
@@ -46,12 +37,66 @@ nes_ppu_exec (struct nes *      nes,
     cpu->mem[0x2000] = ppu->c_regs_1;
     cpu->mem[0x2001] = ppu->c_regs_2;
     cpu->mem[0x2002] = ppu->s_regs;
-    cpu->mem[0x2003] = ppu->sprt_memory_addr;
-    cpu->mem[0x2004] = ppu->sprt_memory_data;
-    cpu->mem[0x2005] = ppu->scrn_scroll_offsets;
-    cpu->mem[0x2006] = ppu->ppu_memory_addr;
-    cpu->mem[0x2007] = ppu->ppu_memory_data;
 
     return ;
 }
 
+void
+nes_ppu_dma (struct cpu *       cpu,
+             struct ppu *       ppu,
+             uint8_t            value)
+{
+    memcpy (ppu->sprt_mem, &cpu->mem[value], sizeof (ppu->sprt_mem));
+}
+
+void
+nes_ppu_spr_ram_set_ptr (struct cpu *  cpu,
+                         struct ppu *  ppu,
+                         uint8_t       value)
+{
+    cpu->mem[0x2004] = ppu->sprt_mem[value];
+}
+
+void
+nes_ppu_spr_ram_load (struct cpu *  cpu,
+                      struct ppu *  ppu,
+                      uint8_t       value)
+{
+    ppu->sprt_mem[cpu->mem[0x2003]] = value;
+    nes_ppu_spr_ram_set_ptr (cpu, ppu, cpu->mem[0x2003] + 1);
+}
+
+void
+nes_ppu_vram_set_ptr (struct cpu *      cpu,
+                      struct ppu *      ppu,
+                      uint8_t           value)
+{
+    ppu->vram_ptr = (ppu->vram_ptr << 8) | value;
+    cpu->mem[0x2007] = ppu->mem[ppu->vram_ptr];
+}
+
+void
+nes_ppu_vram_load (struct cpu *  cpu,
+                   struct ppu *  ppu,
+                   uint8_t       value)
+{
+    ppu->mem[ppu->vram_ptr] = value;
+    if (ppu->vertical_write) {
+        nes_ppu_vram_set_ptr (cpu, ppu, ppu->vram_ptr + 32);
+    } else {
+        nes_ppu_vram_set_ptr (cpu, ppu, ppu->vram_ptr + 1);
+    }
+}
+
+
+void
+nes_ppu_vblank_interrupt (struct cpu *       cpu,
+                          struct ppu *       ppu)
+{
+    ppu->vblank = 1;
+    ppu->vblank_enable = 0;
+
+    nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
+
+    ppu->next_frame = FRAME_DELAY;
+}

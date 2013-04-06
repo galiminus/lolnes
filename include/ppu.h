@@ -34,6 +34,8 @@ struct ppu
         uint8_t         mem[0x4000];
     };
 
+    uint8_t             sprt_mem[0x100];
+
     union {
         struct {
             unsigned short      name_table_addr         :2;
@@ -66,18 +68,21 @@ struct ppu
         };
         uint8_t s_regs;
     };
-    uint8_t             sprt_memory_addr;
-    uint8_t             sprt_memory_data;
-    uint8_t             scrn_scroll_offsets;
-    uint8_t             ppu_memory_addr;
-    uint8_t             ppu_memory_data;
-
+    uint16_t            vram_ptr;
     uint32_t            next_frame;
 };
 
 #define FRAME_DELAY     29557
 
+struct cpu;
 void nes_ppu_init (struct nes *, struct cpu *, struct ppu *);
 void nes_ppu_exec (struct nes *, struct cpu *, struct ppu *, uint32_t);
+
+void nes_ppu_dma (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_vblank_interrupt (struct cpu *, struct ppu *);
+void nes_ppu_spr_ram_set_ptr (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_spr_ram_load (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_vram_set_ptr (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_vram_load (struct cpu *, struct ppu *, uint8_t);
 
 #endif /* !__PPU_H__ */

@@ -2,6 +2,7 @@
 # define __CPU_H__
 
 #include "nes.h"
+#include "ppu.h"
 
 enum interrupt_type {
     INTERRUPT_TYPE_NMI,
@@ -44,6 +45,8 @@ struct cpu
         uint32_t run;
         uint32_t count;
     } debug;
+
+    struct ppu  ppu;
 };
 
 void nes_cpu_init(struct nes *, struct cpu *);
