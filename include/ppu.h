@@ -1,11 +1,38 @@
 #ifndef __PPU_H__
 # define __PPU_H__
 
+#include <time.h>
+
 #include "cpu.h"
 
 struct ppu
 {
-    uint8_t     mem[0x4000];
+    union {
+        struct {
+            uint8_t     pattern_table1[0x1000];
+            uint8_t     pattern_table2[0x1000];
+
+            uint8_t     name_table1[0x3C0];
+            uint8_t     attribute_table1[0x3C0];
+
+            uint8_t     name_table2[0x3C0];
+            uint8_t     attribute_table2[0x3C0];
+
+            uint8_t     name_table3[0x3C0];
+            uint8_t     attribute_table3[0x3C0];
+
+            uint8_t     name_table4[0x3C0];
+            uint8_t     attribute_table4[0x3C0];
+
+            uint8_t     _unused_table[0xEFF];
+
+            uint8_t     picture_colors[0x10];
+            uint8_t     sprite_colors[0x10];
+
+            uint8_t     _colors_mirrors[0xE0];
+        };
+        uint8_t         mem[0x4000];
+    };
 
     union {
         struct {
@@ -39,12 +66,16 @@ struct ppu
         };
         uint8_t s_regs;
     };
-    uint8_t     sprt_memory_addr;
-    uint8_t     sprt_memory_data;
-    uint8_t     scrn_scroll_offsets;
-    uint8_t     ppu_memory_addr;
-    uint8_t     ppu_memory_data;
+    uint8_t             sprt_memory_addr;
+    uint8_t             sprt_memory_data;
+    uint8_t             scrn_scroll_offsets;
+    uint8_t             ppu_memory_addr;
+    uint8_t             ppu_memory_data;
+
+    uint32_t            next_frame;
 };
+
+#define FRAME_DELAY     29557
 
 void nes_ppu_init (struct nes *, struct cpu *, struct ppu *);
 void nes_ppu_exec (struct nes *, struct cpu *, struct ppu *, uint32_t);

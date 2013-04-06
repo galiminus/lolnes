@@ -1,3 +1,5 @@
+#include <time.h>
+
 #include "nes.h"
 #include "cpu.h"
 
@@ -9,6 +11,8 @@ nes_ppu_init (struct nes * nes,
               struct ppu * ppu)
 {
     cpu->mem[0x2002] = 0xF0;
+
+    ppu->next_frame = FRAME_DELAY;
     return ;
 }
 
@@ -27,9 +31,14 @@ nes_ppu_exec (struct nes *      nes,
     ppu->ppu_memory_addr = cpu->mem[0x2006];
     ppu->ppu_memory_data = cpu->mem[0x2007];
 
-    if (!(cpu->debug.count % 50000)) {
-        ppu->vblank ^= 1;
+    ppu->next_frame--;
+    if (ppu->next_frame == 0) {
+        ppu->vblank = 1;
         nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
+
+        ppu->next_frame = FRAME_DELAY;
+    } else {
+        ppu->vblank = 0;
     }
 
     cpu->mem[0x2000] = ppu->c_regs_1;
@@ -43,3 +52,4 @@ nes_ppu_exec (struct nes *      nes,
 
     return ;
 }
+
