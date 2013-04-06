@@ -13,10 +13,12 @@
 uint8_t
 _load8 (struct cpu * cpu, uint16_t addr)
 {
+    uint8_t value = cpu->mem[addr];
+
     if (addr == 0x2002)
         cpu->mem[0x2002] &= 0x7F; // clear the vblank flag
 
-    return (cpu->mem[addr]);
+    return (value);
 }
 
 uint16_t
@@ -85,12 +87,8 @@ _call_clc (struct cpu * cpu, uint16_t  _param)
 void
 _call_jsr (struct cpu * cpu, uint16_t  param)
 {
-    uint16_t pc;
-
-    pc = cpu->regs.pc;
-
-    cpu->mem[0x100 + cpu->regs.s]     = pc >> 8;
-    cpu->mem[0x100 + cpu->regs.s - 1] = pc & 0x00FF;
+    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.pc >> 8;
+    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.pc & 0x00FF;
     cpu->regs.s -= 2;
 
     cpu->regs.new_pc = param - 1;
@@ -134,8 +132,8 @@ _call_rol (struct cpu * cpu, uint16_t  param)
 void
 _call_plp (struct cpu * cpu, uint16_t  _param)
 {
-    cpu->regs.s++;
     cpu->regs.p = cpu->mem[0x100 + cpu->regs.s];
+    cpu->regs.s++;
 }
 
 
@@ -156,9 +154,9 @@ _call_sec (struct cpu * cpu, uint16_t  _param)
 void
 _call_rti (struct cpu * cpu, uint16_t  param)
 {
-    cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 3]) << 8;
-    cpu->regs.new_pc |= cpu->mem[0x100 + cpu->regs.s + 2];
     cpu->regs.p = cpu->mem[0x100 + cpu->regs.s + 1];
+    cpu->regs.new_pc = cpu->mem[0x100 + cpu->regs.s + 2];
+    cpu->regs.new_pc |= (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 3]) << 8;
     cpu->regs.s += 3;
 }
 
@@ -211,8 +209,8 @@ _call_cli (struct cpu * cpu, uint16_t  param)
 void
 _call_rts (struct cpu * cpu, uint16_t  param)
 {
-    cpu->regs.new_pc = (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 2]) << 8;
-    cpu->regs.new_pc |= cpu->mem[0x100 + cpu->regs.s + 1];
+    cpu->regs.new_pc = cpu->mem[0x100 + cpu->regs.s + 1];
+    cpu->regs.new_pc |= (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 2]) << 8;
     cpu->regs.s += 2;
 }
 
@@ -250,8 +248,8 @@ _call_ror (struct cpu * cpu, uint16_t  param)
 void
 _call_pla (struct cpu * cpu, uint16_t  param)
 {
-    cpu->regs.s++;
     cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
+    cpu->regs.s++;
 }
 
 void

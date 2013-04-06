@@ -22,6 +22,22 @@ _nes_put_memory (const uint8_t * memory,
     printf("\n");
 }
 
+void
+_nes_put_stack (const uint8_t * memory,
+                unsigned int    offset,
+                unsigned int    size)
+{
+    unsigned int        i;
+
+    printf ("%04x: ", offset);
+    for (i = size; i; i--) {
+        printf("%02x ", (unsigned char)memory[offset - i]);
+        if (i - 1)
+            printf ("\n%04x: ", offset - i - 0x100);
+    }
+    printf("\n");
+}
+
 int
 nes_cmd (struct nes *   nes,
          struct cpu *   cpu,
@@ -63,7 +79,7 @@ nes_cmd (struct nes *   nes,
             _nes_put_memory (cpu->mem, offset, size);
         }
         else if (!strcmp (action, "stack")) {
-            _nes_put_memory (cpu->mem, 0x100, 0x100);
+            _nes_put_stack (cpu->mem, 0x200, 0xFF - cpu->regs.s);
         }
         else if (!strcmp (action, "checkpoint")) {
             if (argc < 1) {

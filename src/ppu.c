@@ -12,7 +12,7 @@ nes_ppu_init (struct nes * nes,
 {
     cpu->mem[0x2002] = 0xF0;
 
-    ppu->next_frame = FRAME_DELAY;
+    ppu->next_frame = 16;
     return ;
 }
 
