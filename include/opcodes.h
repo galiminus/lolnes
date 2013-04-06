@@ -1,63 +1,63 @@
 #ifndef __OPCODES_H__
 # define __OPCODES_H__
 
-void _call_brk (struct cpu *, uint16_t);
-void _call_ora (struct cpu *, uint16_t);
-void _call_inv (struct cpu *, uint16_t);
-void _call_asl (struct cpu *, uint16_t);
-void _call_php (struct cpu *, uint16_t);
-void _call_adc (struct cpu *, uint16_t);
-void _call_and (struct cpu *, uint16_t);
-void _call_bcc (struct cpu *, uint16_t);
-void _call_bcs (struct cpu *, uint16_t);
-void _call_beq (struct cpu *, uint16_t);
-void _call_bit (struct cpu *, uint16_t);
-void _call_bmi (struct cpu *, uint16_t);
-void _call_bne (struct cpu *, uint16_t);
-void _call_bpl (struct cpu *, uint16_t);
-void _call_bvc (struct cpu *, uint16_t);
-void _call_bvs (struct cpu *, uint16_t);
-void _call_clc (struct cpu *, uint16_t);
-void _call_cld (struct cpu *, uint16_t);
-void _call_cli (struct cpu *, uint16_t);
-void _call_clv (struct cpu *, uint16_t);
-void _call_cmp (struct cpu *, uint16_t);
-void _call_cpx (struct cpu *, uint16_t);
-void _call_cpy (struct cpu *, uint16_t);
-void _call_dec (struct cpu *, uint16_t);
-void _call_dex (struct cpu *, uint16_t);
-void _call_dey (struct cpu *, uint16_t);
-void _call_eor (struct cpu *, uint16_t);
-void _call_inc (struct cpu *, uint16_t);
-void _call_inx (struct cpu *, uint16_t);
-void _call_iny (struct cpu *, uint16_t);
-void _call_jmp (struct cpu *, uint16_t);
-void _call_jsr (struct cpu *, uint16_t);
-void _call_lda (struct cpu *, uint16_t);
-void _call_ldx (struct cpu *, uint16_t);
-void _call_ldy (struct cpu *, uint16_t);
-void _call_lsr (struct cpu *, uint16_t);
-void _call_nop (struct cpu *, uint16_t);
-void _call_pha (struct cpu *, uint16_t);
-void _call_pla (struct cpu *, uint16_t);
-void _call_plp (struct cpu *, uint16_t);
-void _call_rol (struct cpu *, uint16_t);
-void _call_ror (struct cpu *, uint16_t);
-void _call_rti (struct cpu *, uint16_t);
-void _call_rts (struct cpu *, uint16_t);
-void _call_sbc (struct cpu *, uint16_t);
-void _call_sec (struct cpu *, uint16_t);
-void _call_sed (struct cpu *, uint16_t);
-void _call_sei (struct cpu *, uint16_t);
-void _call_sta (struct cpu *, uint16_t);
-void _call_stx (struct cpu *, uint16_t);
-void _call_sty (struct cpu *, uint16_t);
-void _call_tax (struct cpu *, uint16_t);
-void _call_tay (struct cpu *, uint16_t);
-void _call_tsx (struct cpu *, uint16_t);
-void _call_txa (struct cpu *, uint16_t);
-void _call_txs (struct cpu *, uint16_t);
-void _call_tya (struct cpu *, uint16_t);
+unsigned int _call_brk (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_ora (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_inv (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_asl (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_php (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_adc (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_and (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bcc (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bcs (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_beq (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bit (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bmi (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bne (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bpl (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bvc (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_bvs (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_clc (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_cld (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_cli (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_clv (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_cmp (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_cpx (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_cpy (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_dec (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_dex (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_dey (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_eor (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_inc (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_inx (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_iny (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_jmp (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_jsr (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_lda (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_ldx (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_ldy (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_lsr (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_nop (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_pha (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_pla (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_plp (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_rol (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_ror (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_rti (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_rts (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_sbc (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_sec (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_sed (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_sei (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_sta (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_stx (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_sty (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_tax (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_tay (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_tsx (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_txa (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_txs (struct cpu *, uint8_t, uint16_t);
+unsigned int _call_tya (struct cpu *, uint8_t, uint16_t);
 
 enum addr_mode {
     ADDR_MODE_ZPA,
@@ -77,7 +77,7 @@ enum addr_mode {
 
 struct _opcode {
     char *              name;
-    void                (*call)(struct cpu *, uint16_t);
+    unsigned int        (*call)(struct cpu *, uint8_t, uint16_t);
     uint8_t             len;
     uint8_t             time;
     enum addr_mode      addr_mode;
@@ -98,7 +98,7 @@ struct _opcode {
     {"ORA",     _call_ora,  3,      4,  ADDR_MODE_ABS   }, // 0x0D
     {"ASL",     _call_asl,  3,      6,  ADDR_MODE_ABS   }, // 0x0E
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x0F
-    {"BPL",     _call_bpl,  2,      0,  ADDR_MODE_REL   }, // 0x10
+    {"BPL",     _call_bpl,  2,      2,  ADDR_MODE_REL   }, // 0x10
     {"ORA",     _call_ora,  2,      5,  ADDR_MODE_INY   }, // 0x11
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x12
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x13
@@ -130,7 +130,7 @@ struct _opcode {
     {"AND",	_call_and,  3,      4,  ADDR_MODE_ABS   }, // 0x2D
     {"ROL",     _call_rol,  3,      6,  ADDR_MODE_ABS   }, // 0x2E
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x2F
-    {"BMI",     _call_bmi,  2,      0,  ADDR_MODE_REL   }, // 0x30
+    {"BMI",     _call_bmi,  2,      2,  ADDR_MODE_REL   }, // 0x30
     {"AND",	_call_and,  2,      5,  ADDR_MODE_INY   }, // 0x31
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x32
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x33
@@ -162,7 +162,7 @@ struct _opcode {
     {"EOR",     _call_eor,  3,      4,  ADDR_MODE_ABS   }, // 0x4D
     {"LSR",     _call_lsr,  3,      6,  ADDR_MODE_ABS   }, // 0x4E
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x4F
-    {"BVC",     _call_bvc,  2,      0,  ADDR_MODE_REL   }, // 0x50
+    {"BVC",     _call_bvc,  2,      2,  ADDR_MODE_REL   }, // 0x50
     {"EOR",     _call_eor,  2,      5,  ADDR_MODE_INY   }, // 0x51
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x52
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x53
@@ -194,7 +194,7 @@ struct _opcode {
     {"ADC",     _call_adc,  3,      4,  ADDR_MODE_ABS   }, // 0x6D
     {"ROR",     _call_ror,  3,      6,  ADDR_MODE_ABS   }, // 0x6E
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x6F
-    {"BVS",     _call_bvs,  2,      0,  ADDR_MODE_REL   }, // 0x70
+    {"BVS",     _call_bvs,  2,      2,  ADDR_MODE_REL   }, // 0x70
     {"ADC",     _call_adc,  2,      5,  ADDR_MODE_INY   }, // 0x71
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x72
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x73
@@ -226,7 +226,7 @@ struct _opcode {
     {"STA",     _call_sta,  3,      4,  ADDR_MODE_ABS   }, // 0x8D
     {"STX",     _call_stx,  3,      4,  ADDR_MODE_ABS   }, // 0x8E
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x8F
-    {"BCC",     _call_bcc,  2,      0,  ADDR_MODE_REL   }, // 0x90
+    {"BCC",     _call_bcc,  2,      2,  ADDR_MODE_REL   }, // 0x90
     {"STA",     _call_sta,  2,      6,  ADDR_MODE_INY   }, // 0x91
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x92
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0x93
@@ -258,7 +258,7 @@ struct _opcode {
     {"LDA",     _call_lda,  3,      4,  ADDR_MODE_ABS   }, // 0xAD
     {"LDX",     _call_ldx,  3,      4,  ADDR_MODE_ABS   }, // 0xAE
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xAF
-    {"BCS",     _call_bcs,  2,      0,  ADDR_MODE_REL   }, // 0xB0
+    {"BCS",     _call_bcs,  2,      2,  ADDR_MODE_REL   }, // 0xB0
     {"LDA",     _call_lda,  2,      5,  ADDR_MODE_INY   }, // 0xB1
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xB2
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xB3
@@ -290,7 +290,7 @@ struct _opcode {
     {"CMP",     _call_cmp,  3,      4,  ADDR_MODE_ABS   }, // 0xCD
     {"DEC",     _call_dec,  3,      6,  ADDR_MODE_ABS   }, // 0xCE
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xCF
-    {"BNE",     _call_bne,  2,      0,  ADDR_MODE_REL   }, // 0xD0
+    {"BNE",     _call_bne,  2,      2,  ADDR_MODE_REL   }, // 0xD0
     {"CMP",     _call_cmp,  2,      5,  ADDR_MODE_INY   }, // 0xD1
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xD2
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xD3
@@ -322,7 +322,7 @@ struct _opcode {
     {"SBC",     _call_sbc,  3,      4,  ADDR_MODE_ABS   }, // 0xED
     {"INC",     _call_inc,  3,      6,  ADDR_MODE_ABS   }, // 0xEE
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xEF
-    {"BEQ",     _call_beq,  2,      0,  ADDR_MODE_REL   }, // 0xF0
+    {"BEQ",     _call_beq,  2,      2,  ADDR_MODE_REL   }, // 0xF0
     {"SBC",     _call_sbc,  2,      5,  ADDR_MODE_INY   }, // 0xF1
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xF2
     {"INV",     _call_inv,  1,      0,  ADDR_MODE_IMP   }, // 0xF3

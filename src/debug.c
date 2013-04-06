@@ -78,6 +78,15 @@ nes_cmd (struct nes *   nes,
 
             _nes_put_memory (cpu->mem, offset, size);
         }
+        else if (!strcmp (action, "ppumem")) {
+            size_t      size;
+            size_t      offset;
+
+            offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x0000;
+            size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0x2000;
+
+            _nes_put_memory (cpu->ppu.mem, offset, size);
+        }
         else if (!strcmp (action, "stack")) {
             _nes_put_stack (cpu->mem, 0x200, 0xFF - cpu->regs.s);
         }

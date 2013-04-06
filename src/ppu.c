@@ -3,6 +3,7 @@
 
 #include "nes.h"
 #include "cpu.h"
+#include "display.h"
 
 #include "ppu.h"
 
@@ -11,6 +12,7 @@ nes_ppu_init (struct nes * nes,
               struct cpu * cpu,
               struct ppu * ppu)
 {
+    memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x2000);
     cpu->mem[0x2002] = 0xF0;
 
     ppu->next_frame = 32;
@@ -110,6 +112,7 @@ nes_ppu_get_tile (const uint8_t *       graph_mem,
 
     for (y = 0; y < 0x8; y++)
         for (x = 0; x < 0x8; x++)
-            tile[y * 8 + x] = (graph_mem[y] & (0x80 >> x)) | (graph_mem[y + 0x08] & (0x80 >> x)) << 1;
+            tile[y * 8 + x] = (graph_mem[addr + y] & (0x80 >> x)) |
+                (graph_mem[addr + y + 0x08] & (0x80 >> x)) << 1;
 }
 

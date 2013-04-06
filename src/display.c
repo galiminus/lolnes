@@ -7,7 +7,8 @@
 int
 init_display (struct nes *       nes)
 {
-    nes->display = al_create_display (256, 240);
+//    nes->display = al_create_display (256, 240);
+    nes->display = al_create_display (512, 480);
     if (nes->display == NULL) {
         fprintf (stderr, "failed to create display!\n");
         return (-1);
@@ -46,8 +47,17 @@ nes_display (struct nes *       nes,
 
             for (y = 0; y < 0x8; y++)
                 for (x = 0; x < 0x8; x++) {
-                    al_draw_pixel (map_x * 8 + x,
-                                   map_y * 8 + y,
+                    al_draw_pixel ((map_x * 8 + x) * 2,
+                                   (map_y * 8 + y) * 2,
+                                   al_map_rgb (tile[y * 0x8 + x] * 30, 30, 30));
+                    al_draw_pixel ((map_x * 8 + x) * 2 + 1,
+                                   (map_y * 8 + y) * 2,
+                                   al_map_rgb (tile[y * 0x8 + x] * 30, 30, 30));
+                    al_draw_pixel ((map_x * 8 + x) * 2,
+                                   (map_y * 8 + y) * 2 + 1,
+                                   al_map_rgb (tile[y * 0x8 + x] * 30, 30, 30));
+                    al_draw_pixel ((map_x * 8 + x) * 2 + 1,
+                                   (map_y * 8 + y) * 2 + 1,
                                    al_map_rgb (tile[y * 0x8 + x] * 30, 30, 30));
                 }
         }

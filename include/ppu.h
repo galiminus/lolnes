@@ -72,7 +72,7 @@ struct ppu
     uint32_t            next_frame;
 };
 
-#define FRAME_DELAY     29557
+#define FRAME_DELAY     61440
 
 struct cpu;
 void nes_ppu_init (struct nes *, struct cpu *, struct ppu *);
