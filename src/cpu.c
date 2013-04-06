@@ -13,6 +13,9 @@
 uint8_t
 _load8 (struct cpu * cpu, uint16_t addr)
 {
+    if (addr == 0x2002)
+        cpu->mem[0x2002] &= 0x7F; // clear the vblank flag
+
     return (cpu->mem[addr]);
 }
 

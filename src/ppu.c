@@ -32,8 +32,10 @@ nes_ppu_exec (struct nes *      nes,
     ppu->ppu_memory_data = cpu->mem[0x2007];
 
     ppu->next_frame--;
-    if (ppu->next_frame == 0) {
+    if (ppu->next_frame == 0 || ppu->vblank_enable) {
         ppu->vblank = 1;
+        ppu->vblank_enable = 0;
+
         nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
 
         ppu->next_frame = FRAME_DELAY;
