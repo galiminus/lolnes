@@ -52,6 +52,15 @@ _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
     }
 
     cpu->mem[addr] = param;
+
+    if (addr < 0x2000) { // RAM mirroring
+        addr %= 0x800;
+
+        cpu->mem[addr] = param;
+        cpu->mem[addr + 0x800] = param;
+        cpu->mem[addr + 0x1000] = param;
+        cpu->mem[addr + 0x1800] = param;
+    }
 }
 
 void
