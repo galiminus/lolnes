@@ -267,19 +267,19 @@ _call_sei (struct cpu * cpu, uint16_t  _param)
 void
 _call_sta (struct cpu * cpu, uint16_t  param)
 {
-    cpu->mem[_load8 (cpu, param)] = cpu->regs.a;
+    cpu->mem[param] = cpu->regs.a;
 }
 
 void
 _call_stx (struct cpu * cpu, uint16_t  param)
 {
-    cpu->mem[_load8 (cpu, param)] = cpu->regs.x;
+    cpu->mem[param] = cpu->regs.x;
 }
 
 void
 _call_sty (struct cpu * cpu, uint16_t  param)
 {
-    cpu->mem[_load8 (cpu, param)] = cpu->regs.y;
+    cpu->mem[param] = cpu->regs.y;
 }
 
 void
