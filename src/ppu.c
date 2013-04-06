@@ -1,4 +1,5 @@
 #include <time.h>
+#include <stdio.h>
 
 #include "nes.h"
 #include "cpu.h"
@@ -12,7 +13,7 @@ nes_ppu_init (struct nes * nes,
 {
     cpu->mem[0x2002] = 0xF0;
 
-    ppu->next_frame = FRAME_DELAY;
+    ppu->next_frame = 32;
     return ;
 }
 
@@ -30,8 +31,7 @@ nes_ppu_exec (struct nes *      nes,
     if (ppu->next_frame == 0) {
         nes_ppu_vblank_interrupt (cpu, ppu);
         ppu->next_frame = FRAME_DELAY;
-    } else {
-        ppu->vblank = 0;
+        nes_display (nes, cpu);
     }
 
     cpu->mem[0x2000] = ppu->c_regs_1;
@@ -112,3 +112,4 @@ nes_ppu_get_tile (const uint8_t *       graph_mem,
         for (x = 0; x < 0x8; x++)
             tile[y * 8 + x] = (graph_mem[y] & (0x80 >> x)) | (graph_mem[y + 0x08] & (0x80 >> x)) << 1;
 }
+

@@ -199,6 +199,5 @@ nes_exec (struct nes *  nes,
             }
         }
         nes_cpu_exec (nes, &cpu, options);
-        nes_display (nes, &cpu);
     }
 }

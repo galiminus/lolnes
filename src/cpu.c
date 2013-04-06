@@ -35,19 +35,19 @@ _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
 {
     switch (addr) {
     case 0x2000:
-        if (param & 0x80) nes_ppu_vblank_interrupt (cpu, &cpu->ppu);
+        if (param & 0x80) nes_ppu_vblank_interrupt (cpu, &cpu->ppu);    break ;
     case 0x2003:
-        nes_ppu_spr_ram_set_ptr (cpu, &cpu->ppu, param);
+        nes_ppu_spr_ram_set_ptr (cpu, &cpu->ppu, param);                break ;
     case 0x2004:
-        nes_ppu_spr_ram_load (cpu, &cpu->ppu, param);
+        nes_ppu_spr_ram_load (cpu, &cpu->ppu, param);                   break ;
     case 0x2005:
         break ;
     case 0x2006:
-        nes_ppu_vram_set_ptr (cpu, &cpu->ppu, param);
+        nes_ppu_vram_set_ptr (cpu, &cpu->ppu, param);                   break ;
     case 0x2007:
-        nes_ppu_vram_load (cpu, &cpu->ppu, param);
+        nes_ppu_vram_load (cpu, &cpu->ppu, param);                      break ;
     case 0x4014:
-        nes_ppu_dma (cpu, &cpu->ppu, param);
+        nes_ppu_dma (cpu, &cpu->ppu, param);                            break ;
         break ;
     }
 
@@ -643,6 +643,7 @@ nes_cpu_exec (struct nes * nes,
     uint8_t             op;
     uint16_t            param;
 
+
     op = cpu->mem[cpu->regs.pc + 1];
     switch (opcodes[op].addr_mode) {
     case ADDR_MODE_ZPA:  // zero page mode
@@ -691,7 +692,6 @@ nes_cpu_exec (struct nes * nes,
     default:
         param = 0;
     }
-
     cpu->regs.new_pc += opcodes[op].len;
     opcodes[op].call (cpu, param);
 
