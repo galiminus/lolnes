@@ -16,9 +16,9 @@ main (int argc, const char ** argv)
     if (nes_init (&nes) == -1) {
         goto error;
     }
-//    if (init_display (&nes) == -1) {
-//        goto error;
-//    }
+    if (init_display (&nes) == -1) {
+        goto error;
+    }
 
     if (nes_open (argv[1], &nes) == -1) {
         goto error;

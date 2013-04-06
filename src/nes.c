@@ -12,6 +12,7 @@
 #include "cpu.h"
 #include "ppu.h"
 #include "debug.h"
+#include "display.h"
 
 int _nes_parse_header (const char *, size_t, struct nes *);
 int _nes_parse_trainer (const char *, size_t, struct nes *);
@@ -198,5 +199,6 @@ nes_exec (struct nes *  nes,
             }
         }
         nes_cpu_exec (nes, &cpu, options);
+        nes_display (nes, &cpu);
     }
 }
