@@ -735,10 +735,9 @@ nes_cpu_exec (struct nes * nes,
 
         printf("\t\t- %d\n", cpu->debug.count);
     }
+    nes_ppu_exec (nes, cpu, &cpu->ppu, options);
 
     cpu->debug.count++;
     cpu->regs.pc = cpu->regs.new_pc;
-
-    nes_ppu_exec (nes, cpu, &cpu->ppu, options);
     return (0);
 }
