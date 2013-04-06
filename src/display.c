@@ -7,8 +7,6 @@
 int
 init_display (struct nes *       nes)
 {
-    ALLEGRO_BITMAP * bitmap = NULL;
-
     nes->display = al_create_display (256, 240);
     if (nes->display == NULL) {
         fprintf (stderr, "failed to create display!\n");
@@ -27,11 +25,25 @@ int
 nes_display (struct nes *       nes,
              struct cpu *       cpu)
 {
-    al_draw_pixel (10, 30, al_map_rgb(200, 30, 30));
-    al_draw_pixel (10, 31, al_map_rgb(200, 30, 30));
-    al_draw_pixel (11, 31, al_map_rgb(200, 30, 30));
-    al_draw_pixel (11, 30, al_map_rgb(200, 30, 30));
+    int         map_y;
+    int         map_x;
 
-    al_flip_display ();
+    int         y;
+    int         x;
+
+    uint8_t     tile[0x8 * 0x8];
+
+    if (!(cpu->debug.count % 20000)) {
+        for (map_y = 0; map_y < 30; map_y++)
+            for (map_x = 0; map_x < 32; map_x++) {
+                nes_ppu_get_tile (cpu->ppu.name_table1, map_y * 32 + map_x, tile);
+                for (y = 0; y < 0x8; y++)
+                    for (x = 0; x < 0x8; x++)
+                        al_draw_pixel (map_x * 8 + x,
+                                       map_y * 8 + y,
+                                       al_map_rgb (tile[y * 0x8 + x] * 30, 30, 30));
+            }
+        al_flip_display ();
+    }
     return (0);
 }

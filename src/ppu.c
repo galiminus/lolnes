@@ -88,7 +88,6 @@ nes_ppu_vram_load (struct cpu *  cpu,
     }
 }
 
-
 void
 nes_ppu_vblank_interrupt (struct cpu *       cpu,
                           struct ppu *       ppu)
@@ -99,4 +98,17 @@ nes_ppu_vblank_interrupt (struct cpu *       cpu,
     nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
 
     ppu->next_frame = FRAME_DELAY;
+}
+
+void
+nes_ppu_get_tile (const uint8_t *       graph_mem,
+                  uint16_t              addr,
+                  uint8_t *             tile)
+{
+    int y;
+    int x;
+
+    for (y = 0; y < 0x8; y++)
+        for (x = 0; x < 0x8; x++)
+            tile[y * 8 + x] = (graph_mem[y] & (0x80 >> x)) | (graph_mem[y + 0x08] & (0x80 >> x)) << 1;
 }
