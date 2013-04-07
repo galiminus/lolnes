@@ -692,7 +692,9 @@ void
 nes_cpu_init (struct nes * nes,
               struct cpu * cpu)
 {
-    memset (cpu->mem, 0x00, 0xFFFF);
+    nes_ppu_init (nes, cpu, &cpu->ppu);
+
+    memset (cpu->mem, 0x00, sizeof (cpu->mem));
     memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
 
     if (nes->header.prg_rom_size == 1)
@@ -706,14 +708,11 @@ nes_cpu_init (struct nes * nes,
     cpu->regs.s = 0xFF;
     cpu->regs.p = 0x00;
 
-    cpu->debug.checkpoint = 0xFFFF;
     cpu->debug.run = 0;
     cpu->debug.count = 1;
 
     nes_cpu_interrupt (cpu, INTERRUPT_TYPE_RST);
     cpu->regs.pc = cpu->regs.new_pc;
-
-    nes_ppu_init (nes, cpu, &cpu->ppu);
 }
 
 void
@@ -807,13 +806,10 @@ nes_cpu_exec (struct nes * nes,
     cpu->regs.new_pc += opcodes[op].len;
     cycles = opcodes[op].time + opcodes[op].call (cpu, op, param);
 
-    if (cpu->debug.checkpoint == cpu->regs.pc) {
-        cpu->debug.checkpoint = 0xFFFF;
-    }
     if (cpu->debug.run > 0) {
         cpu->debug.run--;
     }
-    if (options & NES_DEBUG && cpu->debug.checkpoint == 0xFFFF && cpu->debug.run == 0) {
+    if (options & NES_DEBUG && cpu->debug.run == 0) {
         printf ("\x1b[32m[%04x>%04x]\x1b[0m[%02x]\t \x1b[31m%s\x1b[0m",
                 cpu->regs.pc + 1, cpu->regs.new_pc + 1, (unsigned char)op, opcodes[op].name);
         if (opcodes[op].len == 2) {

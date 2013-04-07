@@ -4,7 +4,7 @@
 #include "cpu.h"
 
 int init_display (struct nes *);
-int destroy_display (struct nes *);
+void destroy_display (struct nes *);
 int nes_display (struct nes *, struct cpu *);
 
 #endif /* !__DISPLAY_H__ */

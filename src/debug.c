@@ -82,21 +82,57 @@ nes_cmd (struct nes *   nes,
             size_t      size;
             size_t      offset;
 
-            offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x0000;
-            size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0x2000;
+            if (!strcmp (argv[0], "pattern1")) {
+                offset = 0x000;
+                size = 0x1000;
+            } else if (!strcmp (argv[0], "pattern2")) {
+                offset = 0x1000;
+                size = 0x1000;
+            } else if (!strcmp (argv[0], "name1")) {
+                offset = 0x2000;
+                size = 0x3C0;
+            } else if (!strcmp (argv[0], "attr1")) {
+                offset = 0x23C0;
+                size = 0x40;
+            } else if (!strcmp (argv[0], "name2")) {
+                offset = 0x2400;
+                size = 0x3C0;
+            } else if (!strcmp (argv[0], "attr2")) {
+                offset = 0x27C0;
+                size = 0x40;
+            } else if (!strcmp (argv[0], "name3")) {
+                offset = 0x2800;
+                size = 0x3C0;
+            } else if (!strcmp (argv[0], "attr3")) {
+                offset = 0x2BC0;
+                size = 0x40;
+            } else if (!strcmp (argv[0], "name4")) {
+                offset = 0x2C00;
+                size = 0x3C0;
+            } else if (!strcmp (argv[0], "attr4")) {
+                offset = 0x2FC0;
+                size = 0x40;
+            } else if (!strcmp (argv[0], "unused")) {
+                offset = 0x3000;
+                size = 0xEFF;
+            } else if (!strcmp (argv[0], "pcolors")) {
+                offset = 0x3F00;
+                size = 0x10;
+            } else if (!strcmp (argv[0], "pcolors")) {
+                offset = 0x3F10;
+                size = 0x10;
+            } else if (!strcmp (argv[0], "colorsmirrors")) {
+                offset = 0x3F20;
+                size = 0xE0;
+            } else {
+                offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x0000;
+                size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0x2000;
+            }
 
             _nes_put_memory (cpu->ppu.mem, offset, size);
         }
         else if (!strcmp (action, "stack")) {
             _nes_put_stack (cpu->mem, 0x200, 0xFF - cpu->regs.s);
-        }
-        else if (!strcmp (action, "checkpoint")) {
-            if (argc < 1) {
-                printf ("offset required\n");
-                continue ;
-            }
-            cpu->debug.checkpoint = strtoul(argv[0], NULL, 16);
-            printf ("checkpoint set to %04x\n", cpu->debug.checkpoint);
         }
         else if (!strcmp (action, "run")) {
             if (argc < 1) {

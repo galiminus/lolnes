@@ -193,7 +193,7 @@ nes_exec (struct nes *  nes,
 
     nes_cpu_init (nes, &cpu);
     for (;;) {
-        if (options & NES_DEBUG && cpu.debug.checkpoint == 0xFFFF) {
+        if (options & NES_DEBUG) {
             if (nes_cmd (nes, &cpu, &cpu.ppu) == -1) {
                 return (-1);
             }
