@@ -97,7 +97,8 @@ struct nes
     ALLEGRO_EVENT_QUEUE *       event_queue;
 };
 
-#define NES_DEBUG 0x01
+#define NES_DEBUG       0x01
+#define NES_DISASSEMBLE 0x02
 
 int nes_init (struct nes *);
 int nes_open (const char *, struct nes *);

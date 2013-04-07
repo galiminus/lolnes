@@ -48,8 +48,9 @@ struct cpu
     struct ppu  ppu;
 };
 
-void nes_cpu_init(struct nes *, struct cpu *);
-int nes_cpu_exec(struct nes *, struct cpu *, uint32_t);
-void nes_cpu_interrupt(struct cpu *, enum interrupt_type);
+void nes_cpu_init (struct nes *, struct cpu *);
+int nes_cpu_disassemble (struct nes *, struct cpu *);
+int nes_cpu_exec (struct nes *, struct cpu *, uint32_t);
+void nes_cpu_interrupt (struct cpu *, enum interrupt_type);
 
 #endif /* !__CPU_H__ */
