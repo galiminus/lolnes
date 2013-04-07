@@ -33,6 +33,8 @@ _load16 (struct cpu * cpu, uint16_t addr)
 void
 _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
 {
+//    printf ("_store8: %02x@%04x\n", param, addr);
+
     switch (addr) {
     case 0x2000:
         if (param & 0x80) nes_ppu_vblank_interrupt (cpu, &cpu->ppu);    break ;
@@ -346,7 +348,7 @@ _call_sei (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_sta (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->mem[param] = cpu->regs.a;
+    _store8 (cpu, param, cpu->regs.a);
 
     return (0);
 }
@@ -354,7 +356,7 @@ _call_sta (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_stx (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->mem[param] = cpu->regs.x;
+    _store8 (cpu, param, cpu->regs.x);
 
     return (0);
 }
@@ -362,7 +364,7 @@ _call_stx (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_sty (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->mem[param] = cpu->regs.y;
+    _store8 (cpu, param, cpu->regs.y);
 
     return (0);
 }
@@ -688,6 +690,56 @@ _call_inv (struct cpu * cpu, uint8_t op, uint16_t param)
     return (0);
 }
 
+uint16_t
+_extract_param (struct cpu *    cpu,
+                uint8_t         addr_mode)
+{
+    switch (addr_mode) {
+    case ADDR_MODE_ZPA:  // zero page mode
+        return (cpu->mem[cpu->regs.pc + 2]);
+
+    case ADDR_MODE_REL:  // relative mode
+        return (cpu->regs.pc + (int8_t)cpu->mem[cpu->regs.pc + 2]);
+
+    case ADDR_MODE_ABS:  // absolute
+        return (((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8) |
+                cpu->mem[cpu->regs.pc + 2]);
+
+    case ADDR_MODE_ACC:  // accumulator
+        return (cpu->regs.a);
+
+    case ADDR_MODE_IMM:  // immediate mode
+        return (cpu->regs.pc + 2);
+
+    case ADDR_MODE_ZPX:  // zero page, x
+        return (cpu->mem[cpu->regs.pc + 2] + cpu->regs.x);
+
+    case ADDR_MODE_ZPY:  // zero page, y
+        return (cpu->mem[cpu->regs.pc + 2] + cpu->regs.y);
+
+    case ADDR_MODE_ABX:  // absolute, x
+        return (((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
+                 cpu->mem[cpu->regs.pc + 2]) + cpu->regs.x);
+
+    case ADDR_MODE_ABY:  // absolute, y
+        return (((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
+                 cpu->mem[cpu->regs.pc + 2]) + cpu->regs.y);
+
+    case ADDR_MODE_INX: // indirect, x (indexed indirect)
+        return (_load16 (cpu, cpu->mem[cpu->regs.pc + 2] + cpu->regs.x));
+
+    case ADDR_MODE_INY: // indirect, y (indirect indexed)
+        return (_load16 (cpu, cpu->mem[cpu->regs.pc + 2]) + cpu->regs.y);
+
+    case ADDR_MODE_IAB: // indirect absolute
+        return (_load16 (cpu,
+                         (uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
+                         cpu->mem[cpu->regs.pc + 2]));
+
+    }
+    return (0);
+}
+
 void
 nes_cpu_init (struct nes * nes,
               struct cpu * cpu)
@@ -742,7 +794,80 @@ nes_cpu_interrupt (struct cpu *         cpu,
     }
     cpu->regs.new_pc = addr - 1;
 
-    printf ("INTERRUPT! %d -> %04x\n", interrupt_type, cpu->regs.new_pc);
+//    printf ("INTERRUPT! %d -> %04x\n", interrupt_type, cpu->regs.new_pc);
+}
+
+int
+nes_cpu_disassemble (struct nes * nes,
+                     struct cpu * cpu)
+{
+    uint16_t            pc;
+    uint8_t             op;
+
+    pc = nes->header.prg_rom_size == 1 ? 0xC000 : 0x8000;
+    while (pc < 0xFFFF) {
+        op = cpu->mem[pc];
+
+        printf ("[%04x][%02x]\t %s",
+                pc, (unsigned char)op, opcodes[op].name);
+        if (opcodes[op].len == 2) {
+            printf ("(%02x)  ", cpu->mem[pc + 1]);
+        } else if (opcodes[op].len == 3) {
+            printf ("(%04x)",
+                    (uint16_t)(cpu->mem[pc + 2]) << 8 | cpu->mem[pc + 1]);
+        } else if (!strcmp(opcodes[op].name, "INV")) {
+            printf ("ALID  ");
+        } else {
+            printf ("      ");
+        }
+
+        printf (" %s",
+                (char*[]){ "zpa",
+                        "rel",
+                        "imp",
+                        "abs",
+                        "acc",
+                        "imm",
+                        "zpx",
+                        "zpy",
+                        "abx",
+                        "aby",
+                        "inx",
+                        "iny",
+                        "iab"}[opcodes[op].addr_mode]);
+
+        if (opcodes[op].addr_mode == ADDR_MODE_REL) {
+            if (!strcmp (opcodes[op].name, "BCC")) {
+                printf("   C=0");
+            }
+            else if (!strcmp (opcodes[op].name, "BCS")) {
+                printf("   C=1");
+            }
+            else if (!strcmp (opcodes[op].name, "BEQ")) {
+                printf("   Z=1");
+            }
+            else if (!strcmp (opcodes[op].name, "BNE")) {
+                printf("   Z=0");
+            }
+            else if (!strcmp (opcodes[op].name, "BMI")) {
+                printf("   N=1");
+            }
+            else if (!strcmp (opcodes[op].name, "BPL")) {
+                printf("   N=0");
+            }
+            else if (!strcmp (opcodes[op].name, "BVS")) {
+                printf("   V=1");
+            }
+            else if (!strcmp (opcodes[op].name, "BVC")) {
+                printf("   V=0");
+            }
+            printf (" => %04x", pc + (int8_t)cpu->mem[pc + 1]);
+        }
+        printf ("\n");
+
+        pc += opcodes[op].len;
+    }
+    return (0);
 }
 
 int
@@ -756,53 +881,8 @@ nes_cpu_exec (struct nes * nes,
     unsigned int        cycles;
 
     op = cpu->mem[cpu->regs.pc + 1];
-    switch (opcodes[op].addr_mode) {
-    case ADDR_MODE_ZPA:  // zero page mode
-        param = cpu->mem[cpu->regs.pc + 2];                             break ;
+    param = _extract_param (cpu, opcodes[op].addr_mode);
 
-    case ADDR_MODE_REL:  // relative mode
-        param = cpu->regs.pc + (int8_t)cpu->mem[cpu->regs.pc + 2];      break ;
-
-    case ADDR_MODE_ABS:  // absolute
-        param = ((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8) |
-            cpu->mem[cpu->regs.pc + 2];                                 break ;
-
-    case ADDR_MODE_ACC:  // accumulator
-        param = cpu->regs.a;                                            break ;
-
-    case ADDR_MODE_IMM:  // immediate mode
-        param = cpu->regs.pc + 2;                                       break ;
-
-    case ADDR_MODE_ZPX:  // zero page, x
-        param = cpu->mem[cpu->regs.pc + 2] + cpu->regs.x;               break ;
-
-    case ADDR_MODE_ZPY:  // zero page, y
-        param = cpu->mem[cpu->regs.pc + 2] + cpu->regs.y;               break ;
-
-    case ADDR_MODE_ABX:  // absolute, x
-        param = ((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
-                 cpu->mem[cpu->regs.pc + 2]) + cpu->regs.x;             break ;
-
-    case ADDR_MODE_ABY:  // absolute, y
-        param = ((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
-                 cpu->mem[cpu->regs.pc + 2]) + cpu->regs.y;             break ;
-
-    case ADDR_MODE_INX: // indirect, x (indexed indirect)
-        param = _load16 (cpu,
-                         cpu->mem[cpu->regs.pc + 2] + cpu->regs.x);     break ;
-
-    case ADDR_MODE_INY: // indirect, y (indirect indexed)
-        param = _load16 (cpu,
-                         cpu->mem[cpu->regs.pc + 2]) + cpu->regs.y;     break ;
-
-    case ADDR_MODE_IAB: // indirect absolute
-        param = _load16 (cpu,
-                         (uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
-                         cpu->mem[cpu->regs.pc + 2]);                   break ;
-
-    default:
-        param = 0;
-    }
     cpu->regs.new_pc += opcodes[op].len;
     cycles = opcodes[op].time + opcodes[op].call (cpu, op, param);
 

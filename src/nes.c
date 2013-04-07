@@ -192,6 +192,11 @@ nes_exec (struct nes *  nes,
     struct cpu  cpu;
 
     nes_cpu_init (nes, &cpu);
+
+    if (options & NES_DISASSEMBLE) {
+        return (nes_cpu_disassemble (nes, &cpu));
+    }
+
     for (;;) {
         if (options & NES_DEBUG) {
             if (nes_cmd (nes, &cpu, &cpu.ppu) == -1) {

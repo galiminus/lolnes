@@ -6,7 +6,8 @@
 int
 main (int argc, const char ** argv)
 {
-    struct nes nes;
+    struct nes  nes;
+    uint32_t    options = NES_DEBUG | NES_DISASSEMBLE;
 
     if (argc < 2) {
         printf ("%s rom\n", argv[0]);
@@ -16,7 +17,7 @@ main (int argc, const char ** argv)
     if (nes_init (&nes) == -1) {
         goto error;
     }
-    if (init_display (&nes) == -1) {
+    if (!(options & NES_DISASSEMBLE) && init_display (&nes) == -1) {
         goto error;
     }
 
@@ -24,7 +25,7 @@ main (int argc, const char ** argv)
         goto error;
     }
 
-    nes_exec (&nes, NES_DEBUG);
+    nes_exec (&nes, options);
 
     return (0);
 
