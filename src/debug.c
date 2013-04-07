@@ -156,6 +156,8 @@ nes_cmd (struct nes *   nes,
             printf ("scrn_enable: %d\n", ppu->scrn_enable);
             printf ("sprt_enable: %d\n", ppu->sprt_enable);
             printf ("background_color: %01x\n", ppu->background_color);
+            printf ("read_only: %d\n", ppu->read_only);
+            printf ("sprt_per_line: %d\n", ppu->sprt_per_line);
             printf ("hit: %d\n", ppu->hit);
             printf ("vblank: %d\n", ppu->vblank);
         }

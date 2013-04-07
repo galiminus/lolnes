@@ -62,14 +62,16 @@ struct ppu
 
     union {
         struct {
-            unsigned short      _unknown2               :6;
+            unsigned short      _unknown2               :4;
+            unsigned short      read_only               :1;
+            unsigned short      sprt_per_line           :1;
             unsigned short      hit                     :1;
             unsigned short      vblank                  :1;
         };
         uint8_t s_regs;
     };
     uint16_t            vram_ptr;
-    uint32_t            next_frame;
+    int32_t             next_frame;
 };
 
 #define FRAME_DELAY     61440

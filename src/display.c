@@ -46,13 +46,13 @@ nes_display (struct nes *       nes,
     struct nes_color    color;
 
     pattern_table =     &cpu->ppu.mem[cpu->ppu.sprt_ptn_tbl_addr * 0x1000];
-    printf("%d\n", cpu->ppu.name_table_addr);
     name_table =        &cpu->ppu.mem[0x2000 + cpu->ppu.name_table_addr * 0x400];
     attribute_table =   name_table + 0x3C0;
 
     for (map_y = 0; map_y < 30; map_y++) {
         for (map_x = 0; map_x < 32; map_x++) {
             tile_addr = name_table[map_y * 32 + map_x];
+//            printf("%02x\n", tile_addr);
             nes_ppu_get_tile (pattern_table, tile_addr * 0x10, tile);
 
             attribute = attribute_table[(map_y / 4) * 8 + (map_x / 4)];
