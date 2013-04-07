@@ -7,7 +7,7 @@ int
 main (int argc, const char ** argv)
 {
     struct nes  nes;
-    uint32_t    options = NES_DEBUG | NES_DISASSEMBLE;
+    uint32_t    options = NES_DEBUG;
 
     if (argc < 2) {
         printf ("%s rom\n", argv[0]);

@@ -18,6 +18,7 @@ nes_ppu_init (struct nes * nes,
     memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x1000);
 
     ppu->vram_ptr = 0;
+    ppu->name_mirroring = nes->header.a11 << 1 | nes->header.a10;
     ppu->next_frame = 32;
     return ;
 }
@@ -34,8 +35,9 @@ nes_ppu_exec (struct nes *      nes,
 
     ppu->next_frame--;
     if (ppu->next_frame == 0) {
-        nes_ppu_vblank_interrupt (cpu, ppu);
+//        nes_ppu_vblank_interrupt (cpu, ppu);
 //        nes_display (nes, cpu);
+        ppu->vblank = 1;
     } else if (ppu->next_frame == -87833) {
         ppu->read_only = 1;
         ppu->vblank = 0;
@@ -66,9 +68,9 @@ nes_ppu_spr_ram_set_ptr (struct cpu *  cpu,
 }
 
 void
-nes_ppu_spr_ram_load (struct cpu *  cpu,
-                      struct ppu *  ppu,
-                      uint8_t       value)
+nes_ppu_spr_ram_store (struct cpu *  cpu,
+                       struct ppu *  ppu,
+                       uint8_t       value)
 {
     ppu->sprt_mem[cpu->mem[0x2003]] = value;
     nes_ppu_spr_ram_set_ptr (cpu, ppu, cpu->mem[0x2003] + 1);
@@ -80,33 +82,61 @@ nes_ppu_vram_set_ptr (struct cpu *      cpu,
                       uint8_t           value)
 {
     ppu->vram_ptr = (ppu->vram_ptr << 8) | value;
-    printf("%04x\n", ppu->vram_ptr);
     cpu->mem[0x2007] = ppu->mem[ppu->vram_ptr];
 }
 
 void
-nes_ppu_vram_load (struct cpu *  cpu,
-                   struct ppu *  ppu,
-                   uint8_t       value)
+nes_ppu_vram_store (struct cpu *  cpu,
+                    struct ppu *  ppu,
+                    uint8_t       value)
 {
-//    printf("%04x %02x\n", ppu->vram_ptr, value);
-    if (ppu->vram_ptr > sizeof (ppu->mem)) {
-        printf("%04x %02x", ppu->vram_ptr, value);
-    }
-//    assert(ppu->vram_ptr < sizeof (ppu->mem));
+    if (!ppu->read_only) {
+        if (ppu->vram_ptr >= 0x2000 && ppu->vram_ptr < 0x3000) {
+            uint16_t name_offset = (ppu->vram_ptr - 0x2000) % 0x400;
 
-    if (!ppu->read_only)
-        ppu->mem[ppu->vram_ptr] = value;
+            switch (ppu->name_mirroring) {
+            case MIRROR_ALL:
+                ppu->mem[0x2000 + name_offset] = value;
+                ppu->mem[0x2400 + name_offset] = value;
+                ppu->mem[0x2800 + name_offset] = value;
+                ppu->mem[0x2C00 + name_offset] = value;
+                break ;
+            case MIRROR_VERTICAL:
+                if ((ppu->vram_ptr >= 0x2000 && ppu->vram_ptr < 0x2400) ||
+                    (ppu->vram_ptr >= 0x2800 && ppu->vram_ptr < 0x2C00)) {
+                    ppu->mem[0x2000 + name_offset] = value;
+                    ppu->mem[0x2800 + name_offset] = value;
+                }
+                else if ((ppu->vram_ptr >= 0x2400 && ppu->vram_ptr < 0x2800) ||
+                         (ppu->vram_ptr >= 0x2C00 && ppu->vram_ptr < 0x3000)) {
+                    ppu->mem[0x2400 + name_offset] = value;
+                    ppu->mem[0x2C00 + name_offset] = value;
+                }
+                break ;
+            case MIRROR_HORIZONTAL:
+                if (ppu->vram_ptr >= 0x2000 && ppu->vram_ptr < 0x2800) {
+                    ppu->mem[0x2000 + name_offset] = value;
+                    ppu->mem[0x2400 + name_offset] = value;
+                }
+                else if (ppu->vram_ptr >= 0x2800 && ppu->vram_ptr < 0x3000) {
+                    ppu->mem[0x2800 + name_offset] = value;
+                    ppu->mem[0x2C00 + name_offset] = value;
+                }
+                break ;
+            case MIRROR_FOUR_SCREEN:
+                ppu->mem[ppu->vram_ptr] = value;
+                break ;
+            }
+        } else {
+            ppu->mem[ppu->vram_ptr] = value;
+        }
+    }
     if (ppu->vertical_write) {
         ppu->vram_ptr += 32;
         cpu->mem[0x2007] += 32;
     } else {
         ppu->vram_ptr += 1;
         cpu->mem[0x2007] += 1;
-    }
-
-    if (ppu->vram_ptr > sizeof (ppu->mem)) {
-        printf("->OK\n");
     }
 }
 

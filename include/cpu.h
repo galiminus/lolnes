@@ -41,7 +41,7 @@ struct cpu
     } regs;
 
     struct {
-        uint32_t run;
+        int32_t run;
         uint32_t count;
     } debug;
 

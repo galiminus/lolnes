@@ -52,7 +52,6 @@ nes_display (struct nes *       nes,
     for (map_y = 0; map_y < 30; map_y++) {
         for (map_x = 0; map_x < 32; map_x++) {
             tile_addr = name_table[map_y * 32 + map_x];
-//            printf("%02x\n", tile_addr);
             nes_ppu_get_tile (pattern_table, tile_addr * 0x10, tile);
 
             attribute = attribute_table[(map_y / 4) * 8 + (map_x / 4)];

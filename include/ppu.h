@@ -70,11 +70,18 @@ struct ppu
         };
         uint8_t s_regs;
     };
+    unsigned short      name_mirroring  :2;
+
     uint16_t            vram_ptr;
     int32_t             next_frame;
 };
 
 #define FRAME_DELAY     61440
+
+#define MIRROR_ALL              0x00
+#define MIRROR_VERTICAL         0x01
+#define MIRROR_HORIZONTAL       0x02
+#define MIRROR_FOUR_SCREEN      0x03
 
 struct cpu;
 void nes_ppu_init (struct nes *, struct cpu *, struct ppu *);
@@ -83,9 +90,9 @@ void nes_ppu_exec (struct nes *, struct cpu *, struct ppu *, uint32_t);
 void nes_ppu_dma (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vblank_interrupt (struct cpu *, struct ppu *);
 void nes_ppu_spr_ram_set_ptr (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_spr_ram_load (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_spr_ram_store (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vram_set_ptr (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_vram_load (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_vram_store (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_get_tile (const uint8_t *, uint16_t, uint8_t *);
 
 #endif /* !__PPU_H__ */

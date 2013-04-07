@@ -41,13 +41,13 @@ _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
     case 0x2003:
         nes_ppu_spr_ram_set_ptr (cpu, &cpu->ppu, param);                break ;
     case 0x2004:
-        nes_ppu_spr_ram_load (cpu, &cpu->ppu, param);                   break ;
+        nes_ppu_spr_ram_store (cpu, &cpu->ppu, param);                  break ;
     case 0x2005:
         break ;
     case 0x2006:
         nes_ppu_vram_set_ptr (cpu, &cpu->ppu, param);                   break ;
     case 0x2007:
-        nes_ppu_vram_load (cpu, &cpu->ppu, param);                      break ;
+        nes_ppu_vram_store (cpu, &cpu->ppu, param);                     break ;
     case 0x4014:
         nes_ppu_dma (cpu, &cpu->ppu, param);                            break ;
         break ;
@@ -699,7 +699,7 @@ _extract_param (struct cpu *    cpu,
         return (cpu->mem[cpu->regs.pc + 2]);
 
     case ADDR_MODE_REL:  // relative mode
-        return (cpu->regs.pc + (int8_t)cpu->mem[cpu->regs.pc + 2]);
+        return (cpu->regs.new_pc + (int8_t)cpu->mem[cpu->regs.pc + 2]);
 
     case ADDR_MODE_ABS:  // absolute
         return (((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8) |
@@ -881,15 +881,17 @@ nes_cpu_exec (struct nes * nes,
     unsigned int        cycles;
 
     op = cpu->mem[cpu->regs.pc + 1];
-    param = _extract_param (cpu, opcodes[op].addr_mode);
 
     cpu->regs.new_pc += opcodes[op].len;
+
+    param = _extract_param (cpu, opcodes[op].addr_mode);
+
     cycles = opcodes[op].time + opcodes[op].call (cpu, op, param);
 
     if (cpu->debug.run > 0) {
-        cpu->debug.run--;
+        cpu->debug.run -= cycles;
     }
-    if (options & NES_DEBUG && cpu->debug.run == 0) {
+    if (options & NES_DEBUG && cpu->debug.run <= 0) {
         printf ("\x1b[32m[%04x>%04x]\x1b[0m[%02x]\t \x1b[31m%s\x1b[0m",
                 cpu->regs.pc + 1, cpu->regs.new_pc + 1, (unsigned char)op, opcodes[op].name);
         if (opcodes[op].len == 2) {
@@ -902,6 +904,8 @@ nes_cpu_exec (struct nes * nes,
         } else {
             printf ("      ");
         }
+        printf ("[%04x]", param);
+
 
         printf (" %s",
                 (char*[]){ "zpa",

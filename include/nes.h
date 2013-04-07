@@ -19,7 +19,7 @@ struct nes
             /*
               76543210
               ||||||||
-              ||||+||+- 0xx0: vertical arran  gement/horizontal mirroring (CIRAM A10 = PPU A11)
+              ||||+||+- 0xx0: vertical arrangement/horizontal mirroring (CIRAM A10 = PPU A11)
               |||| ||   0xx1: horizontal arrangement/vertical mirroring (CIRAM A10 = PPU A10)
               |||| ||   1xxx: four-screen VRAM
               |||| |+-- 1: SRAM in CPU $6000-$7FFF, if present, is battery backed
@@ -27,10 +27,10 @@ struct nes
               ++++----- Lower nybble of mapper number
              */
             struct {
-                unsigned short  vh                  :1;
+                unsigned short  a11                 :1;
                 unsigned short  sram_in_cpu         :1;
                 unsigned short  trainer             :1;
-                unsigned short  four_screen_vram    :1;
+                unsigned short  a10                 :1;
                 unsigned short  lower_mapper_number :4;
             };
             uint8_t flags_6;
