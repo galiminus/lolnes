@@ -1,6 +1,8 @@
 #include <time.h>
 #include <stdio.h>
 
+#include <assert.h>
+
 #include "nes.h"
 #include "cpu.h"
 #include "display.h"
@@ -15,7 +17,8 @@ nes_ppu_init (struct nes * nes,
     memset (ppu->mem, 0, sizeof (ppu->mem));
     memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x1000);
 
-    ppu->next_frame = 10;
+    ppu->vram_ptr = 0;
+    ppu->next_frame = 32;
     return ;
 }
 
@@ -32,8 +35,11 @@ nes_ppu_exec (struct nes *      nes,
     ppu->next_frame--;
     if (ppu->next_frame == 0) {
         nes_ppu_vblank_interrupt (cpu, ppu);
+//        nes_display (nes, cpu);
+    } else if (ppu->next_frame == -87833) {
+        ppu->read_only = 1;
+        ppu->vblank = 0;
         ppu->next_frame = FRAME_DELAY;
-        nes_display (nes, cpu);
     }
 
     cpu->mem[0x2000] = ppu->c_regs_1;
@@ -74,6 +80,7 @@ nes_ppu_vram_set_ptr (struct cpu *      cpu,
                       uint8_t           value)
 {
     ppu->vram_ptr = (ppu->vram_ptr << 8) | value;
+    printf("%04x\n", ppu->vram_ptr);
     cpu->mem[0x2007] = ppu->mem[ppu->vram_ptr];
 }
 
@@ -82,11 +89,24 @@ nes_ppu_vram_load (struct cpu *  cpu,
                    struct ppu *  ppu,
                    uint8_t       value)
 {
-    ppu->mem[ppu->vram_ptr] = value;
+//    printf("%04x %02x\n", ppu->vram_ptr, value);
+    if (ppu->vram_ptr > sizeof (ppu->mem)) {
+        printf("%04x %02x", ppu->vram_ptr, value);
+    }
+//    assert(ppu->vram_ptr < sizeof (ppu->mem));
+
+    if (!ppu->read_only)
+        ppu->mem[ppu->vram_ptr] = value;
     if (ppu->vertical_write) {
-        nes_ppu_vram_set_ptr (cpu, ppu, ppu->vram_ptr + 32);
+        ppu->vram_ptr += 32;
+        cpu->mem[0x2007] += 32;
     } else {
-        nes_ppu_vram_set_ptr (cpu, ppu, ppu->vram_ptr + 1);
+        ppu->vram_ptr += 1;
+        cpu->mem[0x2007] += 1;
+    }
+
+    if (ppu->vram_ptr > sizeof (ppu->mem)) {
+        printf("->OK\n");
     }
 }
 
