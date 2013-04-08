@@ -200,7 +200,7 @@ _call_rol (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_plp (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->regs.p = cpu->mem[0x100 + cpu->regs.s];
+    cpu->regs.p = cpu->mem[0x100 + cpu->regs.s + 1];
     cpu->regs.s++;
 
     return (0);
@@ -362,7 +362,7 @@ _call_ror (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_pla (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s];
+    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s + 1];
     cpu->regs.s++;
 
     return (0);
