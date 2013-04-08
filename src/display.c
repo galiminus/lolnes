@@ -25,8 +25,10 @@ destroy_display (struct nes *    nes)
 }
 
 int
-nes_display (struct nes *       nes,
-             struct cpu *       cpu)
+_nes_display_patterns (struct nes *     nes,
+                       struct cpu *     cpu,
+                       int              ptn_tbl_addr,
+                       int              name_table_addr)
 {
     int         map_y;
     int         map_x;
@@ -45,8 +47,8 @@ nes_display (struct nes *       nes,
 
     struct nes_color    color;
 
-    pattern_table =     &cpu->ppu.mem[cpu->ppu.sprt_ptn_tbl_addr * 0x1000];
-    name_table =        &cpu->ppu.mem[0x2000 + cpu->ppu.name_table_addr * 0x400];
+    pattern_table =     &cpu->ppu.mem[ptn_tbl_addr * 0x1000];
+    name_table =        &cpu->ppu.mem[0x2000 + name_table_addr * 0x400];
     attribute_table =   name_table + 0x3C0;
 
     for (map_y = 0; map_y < 30; map_y++) {
@@ -84,5 +86,18 @@ nes_display (struct nes *       nes,
         }
     }
     al_flip_display ();
+    return (0);
+}
+
+int
+nes_display (struct nes *       nes,
+             struct cpu *       cpu)
+{
+    /* background */
+    _nes_display_patterns (nes, cpu, cpu->ppu.scrn_ptn_tbl_addr, cpu->ppu.name_table_addr);
+
+    /* sprites */
+    _nes_display_patterns (nes, cpu, cpu->ppu.sprt_ptn_tbl_addr, cpu->ppu.name_table_addr);
+
     return (0);
 }

@@ -36,14 +36,12 @@ _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
 //    printf ("_store8: %02x@%04x\n", param, addr);
 
     switch (addr) {
-    case 0x2000:
-        if (param & 0x80) nes_ppu_vblank_interrupt (cpu, &cpu->ppu);    break ;
     case 0x2003:
         nes_ppu_spr_ram_set_ptr (cpu, &cpu->ppu, param);                break ;
     case 0x2004:
         nes_ppu_spr_ram_store (cpu, &cpu->ppu, param);                  break ;
     case 0x2005:
-        break ;
+        nes_ppu_scroll (cpu, &cpu->ppu, param);                         break ;
     case 0x2006:
         nes_ppu_vram_set_ptr (cpu, &cpu->ppu, param);                   break ;
     case 0x2007:
@@ -90,15 +88,24 @@ _call_ora (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_asl (struct cpu *cpu, uint8_t op, uint16_t param)
 {
-    uint8_t     value = _load8 (cpu, param);
+    if (op == 0x0A) {
+        cpu->regs.c = cpu->regs.a & 0x80;
+        cpu->regs.a <<= 1;
 
-    cpu->regs.c = value & 0x80;
-    value <<= 1;
+        cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+        cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
+    }
+    else {
+        uint8_t     value = _load8 (cpu, param);
 
-    cpu->regs.z = value == 0 ? 1 : 0;
-    cpu->regs.n = value & 0x80 ? 1 : 0;
+        cpu->regs.c = value & 0x80;
+        value <<= 1;
 
-    _store8 (cpu, param, value);
+        cpu->regs.z = value == 0 ? 1 : 0;
+        cpu->regs.n = value & 0x80 ? 1 : 0;
+
+        _store8 (cpu, param, value);
+    }
 
     return (0);
 }
@@ -131,8 +138,8 @@ _call_clc (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_jsr (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.pc >> 8;
-    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.pc & 0x00FF;
+    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.new_pc >> 8;
+    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.new_pc & 0x00FF;
     cpu->regs.s -= 2;
 
     cpu->regs.new_pc = param - 1;
@@ -166,16 +173,26 @@ _call_bit (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_rol (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    uint8_t     value = _load8 (cpu, param);
+    if (op == 0x2A) {
+        cpu->regs.c = cpu->regs.a & 0x80;
+        cpu->regs.a <<= 1;
+        cpu->regs.a |= cpu->regs.c;
 
-    cpu->regs.c = value & 0x80;
-    value <<= 1;
-    value |= cpu->regs.c;
+        cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+        cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
+    }
+    else {
+        uint8_t     value = _load8 (cpu, param);
 
-    cpu->regs.z = value == 0 ? 1 : 0;
-    cpu->regs.n = value & 0x80 ? 1 : 0;
+        cpu->regs.c = value & 0x80;
+        value <<= 1;
+        value |= cpu->regs.c;
 
-    _store8 (cpu, param, value);
+        cpu->regs.z = value == 0 ? 1 : 0;
+        cpu->regs.n = value & 0x80 ? 1 : 0;
+
+        _store8 (cpu, param, value);
+    }
 
     return (0);
 }
@@ -232,12 +249,24 @@ _call_eor (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_lsr (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    uint8_t     value = _load8 (cpu, param);
+    if (op == 0x4A) {
+        cpu->regs.c = cpu->regs.a & 0x80;
+        cpu->regs.a >>= 1;
 
-    cpu->regs.c = value & 0x01;
-    value >>= 1;
-    cpu->regs.z = value == 0 ? 1 : 0;
-    cpu->regs.n = value & 0x80 ? 1 : 0;
+        cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+        cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
+    }
+    else {
+        uint8_t     value = _load8 (cpu, param);
+
+        cpu->regs.c = value & 0x80;
+        value >>= 1;
+
+        cpu->regs.z = value == 0 ? 1 : 0;
+        cpu->regs.n = value & 0x80 ? 1 : 0;
+
+        _store8 (cpu, param, value);
+    }
 
     return (0);
 }
@@ -306,16 +335,26 @@ _call_adc (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_ror (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    uint8_t     value = _load8 (cpu, param);
+    if (op == 0x6A) {
+        cpu->regs.c = cpu->regs.a & 0x01;
+        cpu->regs.a >>= 1;
+        cpu->regs.a |= (cpu->regs.c << 7);
 
-    cpu->regs.c = value & 0x01;
-    value >>= 1;
-    value |= (cpu->regs.c << 7);
+        cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
+        cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
+    }
+    else {
+        uint8_t     value = _load8 (cpu, param);
 
-    cpu->regs.z = value == 0 ? 1 : 0;
-    cpu->regs.n = value & 0x80 ? 1 : 0;
+        cpu->regs.c = value & 0x01;
+        value >>= 1;
+        value |= (cpu->regs.c << 7);
 
-    _store8 (cpu, param, value);
+        cpu->regs.z = value == 0 ? 1 : 0;
+        cpu->regs.n = value & 0x80 ? 1 : 0;
+
+        _store8 (cpu, param, value);
+    }
 
     return (0);
 }
@@ -773,8 +812,8 @@ nes_cpu_interrupt (struct cpu *         cpu,
 {
     uint16_t    addr;
 
-    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.pc >> 8;
-    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.pc & 0x00FF;
+    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.new_pc >> 8;
+    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.new_pc & 0x00FF;
     cpu->mem[0x100 + cpu->regs.s - 2] = cpu->regs.p;
     cpu->regs.s -= 3;
 
@@ -942,6 +981,6 @@ nes_cpu_exec (struct nes * nes,
     for (cycles *= 3; cycles; cycles--)
         nes_ppu_exec (nes, cpu, &cpu->ppu, options);
 
-    cpu->regs.pc = cpu->regs.new_pc;
+    cpu->regs.pc = cpu->regs.new_pc & 0xFFFF;
     return (0);
 }

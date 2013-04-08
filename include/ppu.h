@@ -93,6 +93,7 @@ void nes_ppu_spr_ram_set_ptr (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_spr_ram_store (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vram_set_ptr (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vram_store (struct cpu *, struct ppu *, uint8_t);
+void nes_ppu_scroll (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_get_tile (const uint8_t *, uint16_t, uint8_t *);
 
 #endif /* !__PPU_H__ */

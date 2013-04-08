@@ -35,6 +35,12 @@ nes_ppu_exec (struct nes *      nes,
 
     ppu->next_frame--;
     if (ppu->next_frame == 0) {
+        if (cpu->mem[0x2000] & 0x80) {
+            printf ("DISPLAY\n");
+            nes_display (nes, cpu);
+        }
+
+
 //        nes_ppu_vblank_interrupt (cpu, ppu);
 //        nes_display (nes, cpu);
         ppu->vblank = 1;
@@ -138,6 +144,14 @@ nes_ppu_vram_store (struct cpu *  cpu,
         ppu->vram_ptr += 1;
         cpu->mem[0x2007] += 1;
     }
+}
+
+void
+nes_ppu_scroll (struct cpu *    cpu,
+                struct ppu *    ppu,
+                uint8_t         param)
+{
+    return ;
 }
 
 void
