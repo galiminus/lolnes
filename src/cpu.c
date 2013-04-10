@@ -95,7 +95,7 @@ unsigned int
 _call_asl (struct cpu *cpu, uint8_t op, uint16_t param)
 {
     if (op == 0x0A) {
-        cpu->regs.c = cpu->regs.a & 0x80;
+        cpu->regs.c = cpu->regs.a >> 7;
         cpu->regs.a <<= 1;
 
         cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
@@ -104,7 +104,7 @@ _call_asl (struct cpu *cpu, uint8_t op, uint16_t param)
     else {
         uint8_t     value = _load8 (cpu, param);
 
-        cpu->regs.c = value & 0x80;
+        cpu->regs.c = value >> 7;
         value <<= 1;
 
         cpu->regs.z = value == 0 ? 1 : 0;
@@ -184,7 +184,7 @@ unsigned int
 _call_rol (struct cpu * cpu, uint8_t op, uint16_t param)
 {
     if (op == 0x2A) {
-        cpu->regs.c = cpu->regs.a & 0x80;
+        cpu->regs.c = cpu->regs.a >> 7;
         cpu->regs.a <<= 1;
         cpu->regs.a |= cpu->regs.c;
 
@@ -194,7 +194,7 @@ _call_rol (struct cpu * cpu, uint8_t op, uint16_t param)
     else {
         uint8_t     value = _load8 (cpu, param);
 
-        cpu->regs.c = value & 0x80;
+        cpu->regs.c = value >> 7;
         value <<= 1;
         value |= cpu->regs.c;
 
@@ -264,7 +264,7 @@ unsigned int
 _call_lsr (struct cpu * cpu, uint8_t op, uint16_t param)
 {
     if (op == 0x4A) {
-        cpu->regs.c = cpu->regs.a & 0x80;
+        cpu->regs.c = cpu->regs.a & 0x01;
         cpu->regs.a >>= 1;
 
         cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
@@ -273,7 +273,7 @@ _call_lsr (struct cpu * cpu, uint8_t op, uint16_t param)
     else {
         uint8_t     value = _load8 (cpu, param);
 
-        cpu->regs.c = value & 0x80;
+        cpu->regs.c = value & 0x01;
         value >>= 1;
 
         cpu->regs.z = value == 0 ? 1 : 0;
@@ -355,7 +355,7 @@ _call_ror (struct cpu * cpu, uint8_t op, uint16_t param)
     if (op == 0x6A) {
         cpu->regs.c = cpu->regs.a & 0x01;
         cpu->regs.a >>= 1;
-        cpu->regs.a |= (cpu->regs.c << 7);
+        cpu->regs.a |= ((uint8_t)(cpu->regs.c) << 7);
 
         cpu->regs.z = cpu->regs.a == 0 ? 1 : 0;
         cpu->regs.n = cpu->regs.a & 0x80 ? 1 : 0;
@@ -365,7 +365,7 @@ _call_ror (struct cpu * cpu, uint8_t op, uint16_t param)
 
         cpu->regs.c = value & 0x01;
         value >>= 1;
-        value |= (cpu->regs.c << 7);
+        value |= ((uint8_t)(cpu->regs.c) << 7);
 
         cpu->regs.z = value == 0 ? 1 : 0;
         cpu->regs.n = value & 0x80 ? 1 : 0;
