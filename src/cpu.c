@@ -33,8 +33,10 @@ _load16 (struct cpu * cpu, uint16_t addr)
 void
 _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
 {
-//    printf ("_store8: %02x@%04x\n", param, addr);
-
+    if (((addr % 0x800) >= 0x100 && (addr % 0x800) < 0x200)) {
+        if (param == 0xc0 || param == 0x00)
+            printf ("_store8: %02x@%04x -> %d\n", param, addr, cpu->debug.count);
+    }
     switch (addr) {
     case 0x2003:
         nes_ppu_spr_ram_set_ptr (cpu, &cpu->ppu, param);                break ;
@@ -60,6 +62,10 @@ _store8 (struct cpu * cpu, uint16_t addr, uint8_t param)
         cpu->mem[addr + 0x800] = param;
         cpu->mem[addr + 0x1000] = param;
         cpu->mem[addr + 0x1800] = param;
+    }
+    else if (addr >= 0x2000 && addr < 0x4000) { // PPU registers mirroring
+        for (addr = (addr % 0x08 + 0x2000); addr < 0x4000; addr += 0x08)
+            cpu->mem[addr] = param;
     }
 }
 
@@ -113,6 +119,8 @@ _call_asl (struct cpu *cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_php (struct cpu * cpu, uint8_t op, uint16_t param)
 {
+    printf ("Push p\n");
+
     cpu->mem[0x100 + cpu->regs.s] = cpu->regs.p;
     cpu->regs.s--;
 
@@ -138,8 +146,10 @@ _call_clc (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_jsr (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.new_pc >> 8;
-    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.new_pc & 0x00FF;
+    printf ("Jump to subroutine @%04x from @%04x\n", param - 1, cpu->regs.new_pc);
+
+    _store8 (cpu, 0x100 + cpu->regs.s, cpu->regs.new_pc >> 8);
+    _store8 (cpu, 0x100 + cpu->regs.s - 1, cpu->regs.new_pc & 0x00FF);
     cpu->regs.s -= 2;
 
     cpu->regs.new_pc = param - 1;
@@ -200,6 +210,8 @@ _call_rol (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_plp (struct cpu * cpu, uint8_t op, uint16_t param)
 {
+    printf ("Pull P\n");
+
     cpu->regs.p = cpu->mem[0x100 + cpu->regs.s + 1];
     cpu->regs.s++;
 
@@ -231,6 +243,8 @@ _call_rti (struct cpu * cpu, uint8_t op, uint16_t param)
     cpu->regs.new_pc = cpu->mem[0x100 + cpu->regs.s + 2];
     cpu->regs.new_pc |= (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 3]) << 8;
     cpu->regs.s += 3;
+
+    printf ("Jump back to @%04x from interrupt handler\n", cpu->regs.new_pc);
 
     return (0);
 }
@@ -274,7 +288,9 @@ _call_lsr (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_pha (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->mem[0x100 + cpu->regs.s] = cpu->regs.a;
+    printf ("Push A\n");
+
+    _store8 (cpu, 0x100 + cpu->regs.s, cpu->regs.a);
     cpu->regs.s--;
 
     return (0);
@@ -307,9 +323,10 @@ _call_cli (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_rts (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->regs.new_pc = cpu->mem[0x100 + cpu->regs.s + 1];
-    cpu->regs.new_pc |= (uint16_t)(cpu->mem[0x100 + cpu->regs.s + 2]) << 8;
+    cpu->regs.new_pc = _load16(cpu, 0x100 + cpu->regs.s + 1);
     cpu->regs.s += 2;
+
+    printf ("Jump back to @%04x\n", cpu->regs.new_pc);
 
     return (0);
 }
@@ -362,7 +379,9 @@ _call_ror (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_pla (struct cpu * cpu, uint8_t op, uint16_t param)
 {
-    cpu->regs.a = cpu->mem[0x100 + cpu->regs.s + 1];
+    printf ("Pull A\n");
+
+    cpu->regs.a = _load8 (cpu, 0x100 + cpu->regs.s + 1);
     cpu->regs.s++;
 
     return (0);
@@ -726,6 +745,8 @@ _call_sed (struct cpu * cpu, uint8_t op, uint16_t param)
 unsigned int
 _call_inv (struct cpu * cpu, uint8_t op, uint16_t param)
 {
+    printf ("Invalid opcode\n");
+    exit (1);
     return (0);
 }
 
@@ -751,29 +772,29 @@ _extract_param (struct cpu *    cpu,
         return (cpu->regs.pc + 2);
 
     case ADDR_MODE_ZPX:  // zero page, x
-        return (cpu->mem[cpu->regs.pc + 2] + cpu->regs.x);
+        return ((uint16_t)cpu->mem[cpu->regs.pc + 2] + (uint16_t)cpu->regs.x);
 
     case ADDR_MODE_ZPY:  // zero page, y
-        return (cpu->mem[cpu->regs.pc + 2] + cpu->regs.y);
+        return ((uint16_t)cpu->mem[cpu->regs.pc + 2] + (uint16_t)cpu->regs.y);
 
     case ADDR_MODE_ABX:  // absolute, x
         return (((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
-                 cpu->mem[cpu->regs.pc + 2]) + cpu->regs.x);
+                 (uint16_t)cpu->mem[cpu->regs.pc + 2]) + (uint16_t)cpu->regs.x);
 
     case ADDR_MODE_ABY:  // absolute, y
         return (((uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
-                 cpu->mem[cpu->regs.pc + 2]) + cpu->regs.y);
+                 (uint16_t)cpu->mem[cpu->regs.pc + 2]) + (uint16_t)cpu->regs.y);
 
     case ADDR_MODE_INX: // indirect, x (indexed indirect)
-        return (_load16 (cpu, cpu->mem[cpu->regs.pc + 2] + cpu->regs.x));
+        return (_load16 (cpu, (uint16_t)cpu->mem[cpu->regs.pc + 2] + (uint16_t)cpu->regs.x));
 
     case ADDR_MODE_INY: // indirect, y (indirect indexed)
-        return (_load16 (cpu, cpu->mem[cpu->regs.pc + 2]) + cpu->regs.y);
+        return (_load16 (cpu, (uint16_t)cpu->mem[cpu->regs.pc + 2]) + (uint16_t)cpu->regs.y);
 
     case ADDR_MODE_IAB: // indirect absolute
         return (_load16 (cpu,
                          (uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 |
-                         cpu->mem[cpu->regs.pc + 2]));
+                         (uint16_t)cpu->mem[cpu->regs.pc + 2]));
 
     }
     return (0);
@@ -785,8 +806,8 @@ nes_cpu_init (struct nes * nes,
 {
     nes_ppu_init (nes, cpu, &cpu->ppu);
 
-    memset (cpu->mem, 0x00, sizeof (cpu->mem));
-    memset (&cpu->mem[0x2001], 0x00, sizeof (cpu->mem) - 0x2000);
+    memset (cpu->mem, 0xFF, sizeof (cpu->mem));
+    memset (&cpu->mem[0x2000], 0x00, sizeof (cpu->mem) - 0x2000);
 
     if (nes->header.prg_rom_size == 1)
         memcpy (&cpu->mem[0xC000], nes->prg_rom, 16384);
@@ -796,8 +817,8 @@ nes_cpu_init (struct nes * nes,
     cpu->regs.a = 0;
     cpu->regs.x = 0;
     cpu->regs.y = 0;
-    cpu->regs.s = 0xFF;
-    cpu->regs.p = 0x00;
+    cpu->regs.s = 0xFD;
+    cpu->regs.p = 0x34;
 
     cpu->debug.run = 0;
     cpu->debug.count = 1;
@@ -812,10 +833,12 @@ nes_cpu_interrupt (struct cpu *         cpu,
 {
     uint16_t    addr;
 
-    cpu->mem[0x100 + cpu->regs.s]     = cpu->regs.new_pc >> 8;
-    cpu->mem[0x100 + cpu->regs.s - 1] = cpu->regs.new_pc & 0x00FF;
-    cpu->mem[0x100 + cpu->regs.s - 2] = cpu->regs.p;
-    cpu->regs.s -= 3;
+    if (interrupt_type != INTERRUPT_TYPE_RST) {
+        _store8 (cpu, 0x100 + cpu->regs.s, cpu->regs.new_pc >> 8);
+        _store8 (cpu, 0x100 + cpu->regs.s - 1, cpu->regs.new_pc & 0x00FF);
+        _store8 (cpu, 0x100 + cpu->regs.s - 2, cpu->regs.p);
+        cpu->regs.s -= 3;
+    }
 
     switch (interrupt_type) {
     case INTERRUPT_TYPE_NMI:
@@ -833,7 +856,7 @@ nes_cpu_interrupt (struct cpu *         cpu,
     }
     cpu->regs.new_pc = addr - 1;
 
-//    printf ("INTERRUPT! %d -> %04x\n", interrupt_type, cpu->regs.new_pc);
+    printf ("INTERRUPT! %d -> %04x\n", interrupt_type, cpu->regs.new_pc);
 }
 
 int

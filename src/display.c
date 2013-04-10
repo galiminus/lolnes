@@ -9,8 +9,7 @@
 int
 init_display (struct nes *       nes)
 {
-//    nes->display = al_create_display (256, 240);
-    nes->display = al_create_display (512, 480);
+    nes->display = al_create_display (256, 240);
     if (nes->display == NULL) {
         fprintf (stderr, "failed to create display!\n");
         return (-1);
@@ -25,16 +24,18 @@ destroy_display (struct nes *    nes)
 }
 
 int
-_nes_display_patterns (struct nes *     nes,
-                       struct cpu *     cpu,
-                       int              ptn_tbl_addr,
-                       int              name_table_addr)
+_nes_draw_pixel_for (struct nes *     nes,
+                     struct cpu *     cpu,
+                     int              ptn_tbl_addr,
+                     int              name_table_addr,
+                     uint8_t          abs_x,
+                     uint8_t          abs_y)
 {
-    int         map_y;
-    int         map_x;
+    uint8_t     map_x = abs_x / 8;
+    uint8_t     map_y = abs_y / 8;
 
-    int         y;
-    int         x;
+    uint8_t     x = abs_x % 8;
+    uint8_t     y = abs_y % 8;
 
     uint8_t *   pattern_table;
     uint8_t *   name_table;
@@ -51,53 +52,38 @@ _nes_display_patterns (struct nes *     nes,
     name_table =        &cpu->ppu.mem[0x2000 + name_table_addr * 0x400];
     attribute_table =   name_table + 0x3C0;
 
-    for (map_y = 0; map_y < 30; map_y++) {
-        for (map_x = 0; map_x < 32; map_x++) {
-            tile_addr = name_table[map_y * 32 + map_x];
-            nes_ppu_get_tile (pattern_table, tile_addr * 0x10, tile);
+    tile_addr = name_table[map_y * 32 + map_x];
+    nes_ppu_get_tile (pattern_table, tile_addr * 0x10, tile);
 
-            attribute = attribute_table[(map_y / 4) * 8 + (map_x / 4)];
-            if (!(map_y % 2) && !(map_x % 2))
-                high_color = attribute & 0x03;
-            else if (!(map_y % 2) && map_x % 2)
-                high_color = attribute & 0x0C >> 2;
-            else if (map_y % 2 && !(map_x % 2))
-                high_color = attribute & 0x30 >> 4;
-            else if (map_y % 2 && map_x % 2)
-                high_color = attribute & 0xC0 >> 6;
+    attribute = attribute_table[(map_y / 4) * 8 + (map_x / 4)];
+    if (!(map_y % 2) && !(map_x % 2))
+        high_color = attribute & 0x03;
+    else if (!(map_y % 2) && map_x % 2)
+        high_color = attribute & 0x0C >> 2;
+    else if (map_y % 2 && !(map_x % 2))
+        high_color = attribute & 0x30 >> 4;
+    else if (map_y % 2 && map_x % 2)
+        high_color = attribute & 0xC0 >> 6;
 
-            for (y = 0; y < 0x8; y++)
-                for (x = 0; x < 0x8; x++) {
-                    color = nes_colors[tile[y * 0x8 + x] | (high_color << 2)];
+    color = nes_colors[tile[y * 0x8 + x] | (high_color << 2)];
+    if (tile[y * 0x8 + x] == 0x24)
+        return (0);
 
-                    al_draw_pixel ((map_x * 8 + x) * 2,
-                                   (map_y * 8 + y) * 2,
-                                   al_map_rgb (color.r, color.g, color.b));
-                    al_draw_pixel ((map_x * 8 + x) * 2 + 1,
-                                   (map_y * 8 + y) * 2,
-                                   al_map_rgb (color.r, color.g, color.b));
-                    al_draw_pixel ((map_x * 8 + x) * 2,
-                                   (map_y * 8 + y) * 2 + 1,
-                                   al_map_rgb (color.r, color.g, color.b));
-                    al_draw_pixel ((map_x * 8 + x) * 2 + 1,
-                                   (map_y * 8 + y) * 2 + 1,
-                                   al_map_rgb (color.r, color.g, color.b));
-                }
-        }
-    }
-    al_flip_display ();
+    al_draw_pixel (map_x * 8 + x,
+                   map_y * 8 + y,
+                   al_map_rgb (color.r, color.g, color.b));
+
     return (0);
 }
 
 int
-nes_display (struct nes *       nes,
-             struct cpu *       cpu)
+nes_draw_pixel (struct nes *    nes,
+                struct cpu *    cpu,
+                uint8_t         x,
+                uint8_t         y)
 {
-    /* background */
-    _nes_display_patterns (nes, cpu, cpu->ppu.scrn_ptn_tbl_addr, cpu->ppu.name_table_addr);
-
-    /* sprites */
-    _nes_display_patterns (nes, cpu, cpu->ppu.sprt_ptn_tbl_addr, cpu->ppu.name_table_addr);
+    _nes_draw_pixel_for (nes, cpu, cpu->ppu.scrn_ptn_tbl_addr, cpu->ppu.name_table_addr, x, y);
+    _nes_draw_pixel_for (nes, cpu, cpu->ppu.sprt_ptn_tbl_addr, cpu->ppu.name_table_addr, x, y);
 
     return (0);
 }

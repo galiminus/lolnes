@@ -5,6 +5,16 @@
 
 #include "cpu.h"
 
+enum ppu_state {
+    PPU_START,
+    PPU_BOOT,
+    PPU_FRAME_START,
+    PPU_DRAW_PIXEL,
+    PPU_HBLANK,
+    PPU_FRAME_END,
+    PPU_VBLANK
+};
+
 struct ppu
 {
     union {
@@ -73,10 +83,20 @@ struct ppu
     unsigned short      name_mirroring  :2;
 
     uint16_t            vram_ptr;
-    int32_t             next_frame;
+
+    enum ppu_state      state;
+
+    uint8_t             x;
+    uint8_t             y;
+
+    uint32_t            boot_counter;
+    uint32_t            hblank_counter;
+    uint32_t            vblank_counter;
 };
 
-#define FRAME_DELAY     61440
+#define BOOT_DELAY      30000
+#define HBLANK_DELAY    85
+#define VBLANK_DELAY    6820
 
 #define MIRROR_ALL              0x00
 #define MIRROR_VERTICAL         0x01

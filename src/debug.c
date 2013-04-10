@@ -160,6 +160,7 @@ nes_cmd (struct nes *   nes,
             printf ("sprt_per_line: %d\n", ppu->sprt_per_line);
             printf ("hit: %d\n", ppu->hit);
             printf ("vblank: %d\n", ppu->vblank);
+            printf ("vram_ptr: %04x\n", ppu->vram_ptr);
         }
         else {
             printf ("Unknown command: %s\n", action);
