@@ -95,6 +95,8 @@ struct nes
 
     ALLEGRO_DISPLAY *           display;
     ALLEGRO_EVENT_QUEUE *       event_queue;
+
+    uint32_t                    options;
 };
 
 #define NES_DEBUG       0x01

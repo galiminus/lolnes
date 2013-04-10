@@ -933,6 +933,74 @@ nes_cpu_disassemble (struct nes * nes,
 }
 
 int
+nes_cpu_call (struct nes * nes,
+              struct cpu * cpu,
+              uint32_t     options,
+              uint8_t      op,
+              uint16_t     param)
+{
+  unsigned int        cycles;
+
+  cycles = opcodes[op].time + opcodes[op].call (cpu, op, param);
+
+  if (cpu->debug.run > 0) {
+    cpu->debug.run -= cycles;
+  }
+  if (options & NES_DEBUG && cpu->debug.run <= 0) {
+    printf ("\x1b[32m[%04x>%04x]\x1b[0m[%02x]\t \x1b[31m%s\x1b[0m",
+            cpu->regs.pc + 1, cpu->regs.new_pc + 1, (unsigned char)op, opcodes[op].name);
+    if (opcodes[op].len == 2) {
+      printf ("(\x1b[34m%02x\x1b[0m)  ", cpu->mem[cpu->regs.pc + 2]);
+    } else if (opcodes[op].len == 3) {
+      printf ("(\x1b[34m%04x\x1b[0m)",
+              (uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 | cpu->mem[cpu->regs.pc + 2]);
+    } else if (!strcmp(opcodes[op].name, "INV")) {
+      printf ("\x1b[31mALID\x1b[0m  ");
+    } else {
+      printf ("      ");
+    }
+    printf ("[%04x]", param);
+
+
+    printf (" %s",
+            (char*[]){ "zpa",
+                "rel",
+                "imp",
+                "abs",
+                "acc",
+                "imm",
+                "zpx",
+                "zpy",
+                "abx",
+                "aby",
+                "inx",
+                "iny",
+                "iab"}[opcodes[op].addr_mode]);
+
+    printf ("\t\ta:\x1b[34m%02x\x1b[0m|", cpu->regs.a);
+    printf ("x:\x1b[34m%02x\x1b[0m|", cpu->regs.x);
+    printf ("y:\x1b[34m%02x\x1b[0m|", cpu->regs.y);
+    printf ("s:\x1b[34m%02x\x1b[0m|", cpu->regs.s);
+    printf ("c:\x1b[34m%01x\x1b[0m|", cpu->regs.c);
+    printf ("z:\x1b[34m%01x\x1b[0m|", cpu->regs.z);
+    printf ("i:\x1b[34m%01x\x1b[0m|", cpu->regs.i);
+    printf ("d:\x1b[34m%01x\x1b[0m|", cpu->regs.d);
+    printf ("b:\x1b[34m%01x\x1b[0m|", cpu->regs.b);
+    printf ("v:\x1b[34m%01x\x1b[0m|", cpu->regs.v);
+    printf ("n:\x1b[34m%01x\x1b[0m", cpu->regs.n);
+
+    printf("\t\t%dcc - %d\n", cycles, cpu->debug.count);
+  }
+
+  cpu->debug.count += cycles;
+
+  for (cycles *= 3; cycles; cycles--)
+    nes_ppu_exec (nes, cpu, &cpu->ppu, options);
+  
+  return (0);
+}
+
+int
 nes_cpu_exec (struct nes * nes,
               struct cpu * cpu,
               uint32_t     options)
@@ -940,69 +1008,11 @@ nes_cpu_exec (struct nes * nes,
     uint8_t             op;
     uint16_t            param;
 
-    unsigned int        cycles;
-
     op = cpu->mem[cpu->regs.pc + 1];
-
     cpu->regs.new_pc += opcodes[op].len;
-
     param = _extract_param (cpu, opcodes[op].addr_mode);
 
-    cycles = opcodes[op].time + opcodes[op].call (cpu, op, param);
-
-    if (cpu->debug.run > 0) {
-        cpu->debug.run -= cycles;
-    }
-    if (options & NES_DEBUG && cpu->debug.run <= 0) {
-        printf ("\x1b[32m[%04x>%04x]\x1b[0m[%02x]\t \x1b[31m%s\x1b[0m",
-                cpu->regs.pc + 1, cpu->regs.new_pc + 1, (unsigned char)op, opcodes[op].name);
-        if (opcodes[op].len == 2) {
-            printf ("(\x1b[34m%02x\x1b[0m)  ", cpu->mem[cpu->regs.pc + 2]);
-        } else if (opcodes[op].len == 3) {
-            printf ("(\x1b[34m%04x\x1b[0m)",
-                    (uint16_t)(cpu->mem[cpu->regs.pc + 3]) << 8 | cpu->mem[cpu->regs.pc + 2]);
-        } else if (!strcmp(opcodes[op].name, "INV")) {
-            printf ("\x1b[31mALID\x1b[0m  ");
-        } else {
-            printf ("      ");
-        }
-        printf ("[%04x]", param);
-
-
-        printf (" %s",
-                (char*[]){ "zpa",
-                        "rel",
-                        "imp",
-                        "abs",
-                        "acc",
-                        "imm",
-                        "zpx",
-                        "zpy",
-                        "abx",
-                        "aby",
-                        "inx",
-                        "iny",
-                        "iab"}[opcodes[op].addr_mode]);
-
-        printf ("\t\ta:\x1b[34m%02x\x1b[0m|", cpu->regs.a);
-        printf ("x:\x1b[34m%02x\x1b[0m|", cpu->regs.x);
-        printf ("y:\x1b[34m%02x\x1b[0m|", cpu->regs.y);
-        printf ("s:\x1b[34m%02x\x1b[0m|", cpu->regs.s);
-        printf ("c:\x1b[34m%01x\x1b[0m|", cpu->regs.c);
-        printf ("z:\x1b[34m%01x\x1b[0m|", cpu->regs.z);
-        printf ("i:\x1b[34m%01x\x1b[0m|", cpu->regs.i);
-        printf ("d:\x1b[34m%01x\x1b[0m|", cpu->regs.d);
-        printf ("b:\x1b[34m%01x\x1b[0m|", cpu->regs.b);
-        printf ("v:\x1b[34m%01x\x1b[0m|", cpu->regs.v);
-        printf ("n:\x1b[34m%01x\x1b[0m", cpu->regs.n);
-
-        printf("\t\t%dcc - %d\n", cycles, cpu->debug.count);
-    }
-
-    cpu->debug.count += cycles;
-
-    for (cycles *= 3; cycles; cycles--)
-        nes_ppu_exec (nes, cpu, &cpu->ppu, options);
+    nes_cpu_call (nes, cpu, options, op, param);
 
     cpu->regs.pc = cpu->regs.new_pc & 0xFFFF;
     return (0);

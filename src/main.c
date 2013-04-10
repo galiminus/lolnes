@@ -17,6 +17,7 @@ main (int argc, const char ** argv)
     if (nes_init (&nes) == -1) {
         goto error;
     }
+    nes.options = options;
     if (!(options & NES_DISASSEMBLE) && init_display (&nes) == -1) {
         goto error;
     }

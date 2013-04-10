@@ -162,6 +162,18 @@ nes_cmd (struct nes *   nes,
             printf ("vblank: %d\n", ppu->vblank);
             printf ("vram_ptr: %04x\n", ppu->vram_ptr);
         }
+        else if (!strcmp (action, "call")) {
+          uint8_t       opcode;
+          uint8_t       param;
+
+          if (argc < 2) {
+            printf ("call opcode [param]\n");
+          }
+          opcode = strtoul (argv[0], NULL, 16);
+          param = argc > 1 ? strtoul (argv[1], NULL, 16) : 0x0000;
+
+          nes_cpu_call (nes, cpu, nes->options, opcode, param);
+        }
         else {
             printf ("Unknown command: %s\n", action);
         }
