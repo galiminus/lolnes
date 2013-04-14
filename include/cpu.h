@@ -1,8 +1,6 @@
 #ifndef __CPU_H__
 # define __CPU_H__
 
-#include "ppu.h"
-
 struct nes;
 
 enum interrupt_type {

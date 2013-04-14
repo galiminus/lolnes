@@ -71,13 +71,7 @@ nes_init (struct nes *  nes,
 int
 nes_exec (struct nes *  nes)
 {
-    int     cycles;
-
-    cycles = cpu_exec (&nes->cpu);
-    for (cycles *= 3; cycles; cycles--)
-        ppu_exec (&nes->ppu);
-
-    return (cycles);
+    return (cpu_exec (&nes->cpu));
 }
 
 int

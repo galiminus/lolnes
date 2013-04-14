@@ -50,49 +50,52 @@ debug_cmd (struct nes *   nes)
             size_t      size;
             size_t      offset;
 
-            if (!strcmp (argv[0], "pattern0")) {
-                offset = 0x000;
-                size = 0x1000;
-            } else if (!strcmp (argv[0], "pattern1")) {
-                offset = 0x1000;
-                size = 0x1000;
-            } else if (!strcmp (argv[0], "name0")) {
-                offset = 0x2000;
-                size = 0x3C0;
-            } else if (!strcmp (argv[0], "attr0")) {
-                offset = 0x23C0;
-                size = 0x40;
-            } else if (!strcmp (argv[0], "name1")) {
-                offset = 0x2400;
-                size = 0x3C0;
-            } else if (!strcmp (argv[0], "attr1")) {
-                offset = 0x27C0;
-                size = 0x40;
-            } else if (!strcmp (argv[0], "name2")) {
-                offset = 0x2800;
-                size = 0x3C0;
-            } else if (!strcmp (argv[0], "attr2")) {
-                offset = 0x2BC0;
-                size = 0x40;
-            } else if (!strcmp (argv[0], "name3")) {
-                offset = 0x2C00;
-                size = 0x3C0;
-            } else if (!strcmp (argv[0], "attr3")) {
-                offset = 0x2FC0;
-                size = 0x40;
-            } else if (!strcmp (argv[0], "unused")) {
-                offset = 0x3000;
-                size = 0xEFF;
-            } else if (!strcmp (argv[0], "pcolors")) {
-                offset = 0x3F00;
-                size = 0x10;
-            } else if (!strcmp (argv[0], "pcolors")) {
-                offset = 0x3F10;
-                size = 0x10;
-            } else if (!strcmp (argv[0], "colorsmirrors")) {
-                offset = 0x3F20;
-                size = 0xE0;
-            } else {
+            if (argc > 0) {
+                if (!strcmp (argv[0], "pattern0")) {
+                    offset = 0x000;
+                    size = 0x1000;
+                } else if (!strcmp (argv[0], "pattern1")) {
+                    offset = 0x1000;
+                    size = 0x1000;
+                } else if (!strcmp (argv[0], "name0")) {
+                    offset = 0x2000;
+                    size = 0x3C0;
+                } else if (!strcmp (argv[0], "attr0")) {
+                    offset = 0x23C0;
+                    size = 0x40;
+                } else if (!strcmp (argv[0], "name1")) {
+                    offset = 0x2400;
+                    size = 0x3C0;
+                } else if (!strcmp (argv[0], "attr1")) {
+                    offset = 0x27C0;
+                    size = 0x40;
+                } else if (!strcmp (argv[0], "name2")) {
+                    offset = 0x2800;
+                    size = 0x3C0;
+                } else if (!strcmp (argv[0], "attr2")) {
+                    offset = 0x2BC0;
+                    size = 0x40;
+                } else if (!strcmp (argv[0], "name3")) {
+                    offset = 0x2C00;
+                    size = 0x3C0;
+                } else if (!strcmp (argv[0], "attr3")) {
+                    offset = 0x2FC0;
+                    size = 0x40;
+                } else if (!strcmp (argv[0], "unused")) {
+                    offset = 0x3000;
+                    size = 0xEFF;
+                } else if (!strcmp (argv[0], "pcolors0")) {
+                    offset = 0x3F00;
+                    size = 0x10;
+                } else if (!strcmp (argv[0], "pcolors1")) {
+                    offset = 0x3F10;
+                    size = 0x10;
+                } else if (!strcmp (argv[0], "colorsmirrors")) {
+                    offset = 0x3F20;
+                    size = 0xE0;
+                }
+            }
+            else {
                 printf ("ppumem section\n");
                 continue ;
             }

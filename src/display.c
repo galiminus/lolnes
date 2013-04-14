@@ -34,7 +34,7 @@ display_draw (struct nes *    nes,
     _draw_pixel_for (nes, nes->ppu.sprt_ptn_tbl_addr, nes->ppu.name_table_addr, x, y);
     _draw_pixel_for (nes, nes->ppu.scrn_ptn_tbl_addr, nes->ppu.name_table_addr, x, y);
 
-    _draw_sprites (nes, nes->ppu.sprt_ptn_tbl_addr, x, y);
+//    _draw_sprites (nes, nes->ppu.sprt_ptn_tbl_addr, x, y);
     return (0);
 }
 

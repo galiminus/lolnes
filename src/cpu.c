@@ -840,7 +840,7 @@ cpu_interrupt (struct cpu *         cpu,
     }
     cpu->regs.new_pc = addr - 1;
 
-    printf ("INTERRUPT! %d -> %04x\n", interrupt_type, cpu->regs.new_pc);
+    printf ("INTERRUPT! %d -> %04x @%d\n", interrupt_type, cpu->regs.new_pc, cpu->debug.count);
 }
 
 int
@@ -974,7 +974,7 @@ cpu_call (struct cpu * cpu,
 
     cpu->debug.count += cycles;
 
-    return (0);
+    return (cycles);
 }
 
 int
@@ -983,12 +983,19 @@ cpu_exec (struct cpu * cpu)
     uint8_t             op;
     uint16_t            param;
 
+    int                 cycles;
+    int                 ppu_cycles;
+
     op = cpu->mem[cpu->regs.pc + 1];
     cpu->regs.new_pc += opcodes[op].len;
     param = _extract_param (cpu, opcodes[op].addr_mode);
 
-    cpu_call (cpu, op, param);
+    cycles = cpu_call (cpu, op, param);
+
+    for (ppu_cycles = cycles * 3; ppu_cycles; ppu_cycles--)
+        ppu_exec (&cpu->nes->ppu);
 
     cpu->regs.pc = cpu->regs.new_pc & 0xFFFF;
-    return (0);
+
+    return (cycles);
 }

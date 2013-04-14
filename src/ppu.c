@@ -14,12 +14,15 @@ ppu_init (struct ppu * ppu,
           struct nes * nes)
 {
     memset (ppu->mem, 0, sizeof (ppu->mem));
+    memset (ppu->sprt_mem, 0, sizeof (ppu->sprt_mem));
     memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x2000);
 
     ppu->vram_ptr = 0;
     ppu->name_mirroring = nes->header.a11 << 1 | nes->header.a10;
 
     ppu->state = PPU_START;
+
+    ppu->nes = nes;
 
     return ;
 }
@@ -59,7 +62,7 @@ ppu_exec (struct ppu *      ppu)
 
                 if (!ppu->vblank_enable) {
                     ppu->state = PPU_FRAME_START;
-h                    break ;
+                    break ;
                 }
 
                 ppu->vblank = 1;

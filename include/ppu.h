@@ -100,7 +100,7 @@ struct color_layout {
 
 };
 
-#define BOOT_DELAY      30000
+#define BOOT_DELAY      100000
 #define HBLANK_DELAY    86
 #define VBLANK_DELAY    6820
 
