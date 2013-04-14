@@ -6,6 +6,9 @@
 
 #include <allegro5/allegro.h>
 
+#include "cpu.h"
+#include "ppu.h"
+
 struct nes
 {
     char *      rom;
@@ -97,14 +100,15 @@ struct nes
     ALLEGRO_EVENT_QUEUE *       event_queue;
 
     uint32_t                    options;
+
+    struct cpu  cpu;
+    struct ppu  ppu;
 };
 
 #define NES_DEBUG       0x01
 #define NES_DISASSEMBLE 0x02
 
-int nes_init (struct nes *, uint32_t);
-int nes_open (const char *, struct nes *);
-int nes_parse (const char *, size_t, struct nes *);
+int nes_init (struct nes *, uint32_t, const char *);
 int nes_exec (struct nes *);
 
 #endif /* !__NES_H__ */

@@ -3,7 +3,7 @@
 
 #include <time.h>
 
-#include "cpu.h"
+struct nes;
 
 enum ppu_state {
     PPU_START,
@@ -92,6 +92,8 @@ struct ppu
     uint32_t            boot_counter;
     uint32_t            hblank_counter;
     uint32_t            vblank_counter;
+
+    struct nes *        nes;
 };
 
 struct color_layout {
@@ -107,17 +109,16 @@ struct color_layout {
 #define MIRROR_HORIZONTAL       0x02
 #define MIRROR_FOUR_SCREEN      0x03
 
-struct cpu;
-void nes_ppu_init (struct nes *, struct cpu *, struct ppu *);
-void nes_ppu_exec (struct nes *, struct cpu *, struct ppu *);
+void ppu_init (struct ppu *, struct nes *);
+void ppu_exec (struct ppu *);
 
-void nes_ppu_dma (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_vblank_interrupt (struct cpu *, struct ppu *);
-void nes_ppu_spr_ram_set_ptr (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_spr_ram_store (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_vram_set_ptr (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_vram_store (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_scroll (struct cpu *, struct ppu *, uint8_t);
-uint8_t nes_ppu_get_tile (const uint8_t *, uint16_t, uint8_t, uint8_t);
+void ppu_dma (struct ppu *, uint8_t);
+void ppu_vblank_interrupt (struct ppu *);
+void ppu_spr_ram_set_ptr (struct ppu *, uint8_t);
+void ppu_spr_ram_store (struct ppu *, uint8_t);
+void ppu_vram_set_ptr (struct ppu *, uint8_t);
+void ppu_vram_store (struct ppu *, uint8_t);
+void ppu_scroll (struct ppu *, uint8_t);
+uint8_t ppu_get_tile (const uint8_t *, uint16_t, uint8_t, uint8_t);
 
 #endif /* !__PPU_H__ */

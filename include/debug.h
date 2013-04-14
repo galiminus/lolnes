@@ -5,6 +5,6 @@
 #include "cpu.h"
 #include "ppu.h"
 
-int nes_cmd (struct nes *, struct cpu *, struct ppu *);
+int debug_cmd (struct nes *);
 
 #endif /* !__DEBUG_H__ */

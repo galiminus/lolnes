@@ -10,9 +10,8 @@
 #include "ppu.h"
 
 void
-nes_ppu_init (struct nes * nes,
-              struct cpu * cpu,
-              struct ppu * ppu)
+ppu_init (struct ppu * ppu,
+          struct nes * nes)
 {
     memset (ppu->mem, 0, sizeof (ppu->mem));
     memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x2000);
@@ -26,19 +25,17 @@ nes_ppu_init (struct nes * nes,
 }
 
 void
-nes_ppu_exec (struct nes *      nes,
-              struct cpu *      cpu,
-              struct ppu *      ppu)
+ppu_exec (struct ppu *      ppu)
 {
-    ppu->c_regs_1 = cpu->mem[0x2000];
-    ppu->c_regs_2 = cpu->mem[0x2001];
-    ppu->s_regs = cpu->mem[0x2002];
+    ppu->c_regs_1 = ppu->nes->cpu.mem[0x2000];
+    ppu->c_regs_2 = ppu->nes->cpu.mem[0x2001];
+    ppu->s_regs = ppu->nes->cpu.mem[0x2002];
 
     switch (ppu->state) {
     case PPU_START:
-        ppu->vblank = 1;
         ppu->boot_counter = BOOT_DELAY;
         ppu->state = PPU_BOOT;
+        ppu->vblank = 1;
         break ;
 
     case PPU_BOOT:
@@ -55,19 +52,19 @@ nes_ppu_exec (struct nes *      nes,
         break ;
 
     case PPU_DRAW_PIXEL:
-        nes_draw_pixel (nes, cpu, ppu->x, ppu->y);
+        display_draw (ppu->nes, ppu->x, ppu->y);
         if (ppu->x == 255) {
             if (ppu->y == 242) {
-/*                if (!ppu->vblank_enable) {
-                    ppu->state = PPU_FRAME_START;
-                    break ;
-                    }*/
-
                 al_flip_display ();
+
+                if (!ppu->vblank_enable) {
+                    ppu->state = PPU_FRAME_START;
+h                    break ;
+                }
 
                 ppu->vblank = 1;
                 ppu->hit = 0;
-                nes_ppu_vblank_interrupt (cpu, ppu);
+                ppu_vblank_interrupt (ppu);
 
                 ppu->vblank_counter = VBLANK_DELAY;
                 ppu->state = PPU_VBLANK;
@@ -104,51 +101,46 @@ nes_ppu_exec (struct nes *      nes,
         break ;
     }
 
-    cpu->mem[0x2000] = ppu->c_regs_1;
-    cpu->mem[0x2001] = ppu->c_regs_2;
-    cpu->mem[0x2002] = ppu->s_regs;
+    ppu->nes->cpu.mem[0x2000] = ppu->c_regs_1;
+    ppu->nes->cpu.mem[0x2001] = ppu->c_regs_2;
+    ppu->nes->cpu.mem[0x2002] = ppu->s_regs;
 
     return ;
 }
 
 void
-nes_ppu_dma (struct cpu *       cpu,
-             struct ppu *       ppu,
-             uint8_t            value)
+ppu_dma (struct ppu *       ppu,
+         uint8_t            value)
 {
-    memcpy (ppu->sprt_mem, &cpu->mem[value], sizeof (ppu->sprt_mem));
+    memcpy (ppu->sprt_mem, &ppu->nes->cpu.mem[value], sizeof (ppu->sprt_mem));
 }
 
 void
-nes_ppu_spr_ram_set_ptr (struct cpu *  cpu,
-                         struct ppu *  ppu,
-                         uint8_t       value)
+ppu_spr_ram_set_ptr (struct ppu *  ppu,
+                     uint8_t       value)
 {
-    cpu->mem[0x2004] = ppu->sprt_mem[value];
+    ppu->nes->cpu.mem[0x2004] = ppu->sprt_mem[value];
 }
 
 void
-nes_ppu_spr_ram_store (struct cpu *  cpu,
-                       struct ppu *  ppu,
-                       uint8_t       value)
+ppu_spr_ram_store (struct ppu *  ppu,
+                   uint8_t       value)
 {
-    ppu->sprt_mem[cpu->mem[0x2003]] = value;
-    nes_ppu_spr_ram_set_ptr (cpu, ppu, cpu->mem[0x2003] + 1);
+    ppu->sprt_mem[ppu->nes->cpu.mem[0x2003]] = value;
+    ppu_spr_ram_set_ptr (ppu, ppu->nes->cpu.mem[0x2003] + 1);
 }
 
 void
-nes_ppu_vram_set_ptr (struct cpu *      cpu,
-                      struct ppu *      ppu,
-                      uint8_t           value)
+ppu_vram_set_ptr (struct ppu *      ppu,
+                  uint8_t           value)
 {
     ppu->vram_ptr = (ppu->vram_ptr << 8) | value;
-    cpu->mem[0x2007] = ppu->mem[ppu->vram_ptr % 0x4000];
+    ppu->nes->cpu.mem[0x2007] = ppu->mem[ppu->vram_ptr % 0x4000];
 }
 
 void
-nes_ppu_vram_store (struct cpu *  cpu,
-                    struct ppu *  ppu,
-                    uint8_t       value)
+ppu_vram_store (struct ppu *  ppu,
+                uint8_t       value)
 {
     ppu->vram_ptr %= 0x4000;
 
@@ -200,36 +192,34 @@ nes_ppu_vram_store (struct cpu *  cpu,
 
     if (ppu->vertical_write) {
         ppu->vram_ptr += 32;
-        cpu->mem[0x2006] += 32;
+        ppu->nes->cpu.mem[0x2006] += 32;
     } else {
         ppu->vram_ptr += 1;
-        cpu->mem[0x2006] += 1;
+        ppu->nes->cpu.mem[0x2006] += 1;
     }
 }
 
 void
-nes_ppu_scroll (struct cpu *    cpu,
-                struct ppu *    ppu,
-                uint8_t         param)
+ppu_scroll (struct ppu *    ppu,
+            uint8_t         param)
 {
     return ;
 }
 
 void
-nes_ppu_vblank_interrupt (struct cpu *       cpu,
-                          struct ppu *       ppu)
+ppu_vblank_interrupt (struct ppu *       ppu)
 {
     ppu->vblank = 1;
     ppu->vblank_enable = 0;
 
-    nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
+    cpu_interrupt (&ppu->nes->cpu, INTERRUPT_TYPE_NMI);
 }
 
 uint8_t
-nes_ppu_get_tile (const uint8_t *       graph_mem,
-                  uint16_t              addr,
-                  uint8_t               x,
-                  uint8_t               y)
+ppu_get_tile (const uint8_t *       graph_mem,
+              uint16_t              addr,
+              uint8_t               x,
+              uint8_t               y)
 {
     return (((graph_mem[addr + y] & (0x80 >> x)) >> (7 - x)) |
             ((graph_mem[addr + y + 0x08] & (0x80 >> x)) >> (7 - x)) << 1);

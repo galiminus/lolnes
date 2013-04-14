@@ -1,8 +1,9 @@
 #ifndef __CPU_H__
 # define __CPU_H__
 
-#include "nes.h"
 #include "ppu.h"
+
+struct nes;
 
 enum interrupt_type {
     INTERRUPT_TYPE_NMI,
@@ -36,22 +37,22 @@ struct cpu
             uint8_t p;
         };
 
-        uint16_t pc;
-        uint16_t new_pc;
+        uint16_t        pc;
+        uint16_t        new_pc;
     } regs;
 
     struct {
-        int32_t run;
-        uint32_t count;
+        int32_t         run;
+        uint32_t        count;
     } debug;
 
-    struct ppu  ppu;
+    struct nes *        nes;
 };
 
-void nes_cpu_init (struct nes *, struct cpu *);
-int nes_cpu_disassemble (struct nes *, struct cpu *);
-int nes_cpu_exec (struct nes *, struct cpu *);
-int nes_cpu_call (struct nes *, struct cpu *, uint8_t, uint16_t);
-void nes_cpu_interrupt (struct cpu *, enum interrupt_type);
+void cpu_init (struct cpu *, struct nes *);
+int cpu_disassemble (struct cpu *);
+int cpu_exec (struct cpu *);
+int cpu_call (struct cpu *, uint8_t, uint16_t);
+void cpu_interrupt (struct cpu *, enum interrupt_type);
 
 #endif /* !__CPU_H__ */

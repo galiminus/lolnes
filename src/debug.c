@@ -6,43 +6,10 @@
 #include "cpu.h"
 #include "ppu.h"
 
-void
-_nes_put_memory (const uint8_t * memory,
-                 unsigned int    offset,
-                 unsigned int    size)
-{
-    unsigned int        i;
-
-    printf ("%04x: ", offset);
-    for (i = 0; i < size; i++) {
-        printf("%02x ", (unsigned char)memory[offset + i]);
-        if (!((i + 1) % 32) && (i + 1) < size) {
-            printf ("\n%04x: ", offset + i);
-        }
-    }
-    printf("\n");
-}
-
-void
-_nes_put_stack (const uint8_t * memory,
-                unsigned int    offset,
-                unsigned int    size)
-{
-    unsigned int        i;
-
-    printf ("%04x: ", offset);
-    for (i = size; i; i--) {
-        printf("%02x ", (unsigned char)memory[offset - i]);
-        if (i - 1)
-            printf ("\n%04x: ", offset - i - 0x100);
-    }
-    printf("\n");
-}
-
+void _put_memory (const uint8_t *, unsigned int, unsigned int);
+void _put_stack (const uint8_t *, unsigned int, unsigned int);
 int
-nes_cmd (struct nes *   nes,
-         struct cpu *   cpu,
-         struct ppu *   ppu)
+debug_cmd (struct nes *   nes)
 {
     char                cmd[256];
     char *              action;
@@ -51,7 +18,7 @@ nes_cmd (struct nes *   nes,
     char *              argv[16];
     unsigned int        argc;
 
-    if (cpu->debug.run > 0) {
+    if (nes->cpu.debug.run > 0) {
         return (0);
     }
 
@@ -77,7 +44,7 @@ nes_cmd (struct nes *   nes,
             offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x0000;
             size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0x2000;
 
-            _nes_put_memory (cpu->mem, offset, size);
+            _put_memory (nes->cpu.mem, offset, size);
         }
         else if (!strcmp (action, "ppumem")) {
             size_t      size;
@@ -126,11 +93,11 @@ nes_cmd (struct nes *   nes,
                 offset = 0x3F20;
                 size = 0xE0;
             } else {
-                offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x0000;
-                size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0x2000;
+                printf ("ppumem section\n");
+                continue ;
             }
 
-            _nes_put_memory (cpu->ppu.mem, offset, size);
+            _put_memory (nes->ppu.mem, offset, size);
         }
         else if (!strcmp (action, "sprtmem")) {
             size_t      size;
@@ -138,38 +105,38 @@ nes_cmd (struct nes *   nes,
 
             offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x00;
             size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0xFF;
-            _nes_put_memory (cpu->ppu.sprt_mem, offset, size);
+            _put_memory (nes->ppu.sprt_mem, offset, size);
         }
         else if (!strcmp (action, "stack")) {
-            _nes_put_stack (cpu->mem, 0x200, 0xFF - cpu->regs.s);
+            _put_memory (nes->cpu.mem, 0x200, 0xFF - nes->cpu.regs.s);
         }
         else if (!strcmp (action, "run")) {
             if (argc < 1) {
                 printf ("number of instructions required\n");
                 continue ;
             }
-            cpu->debug.run = strtoul(argv[0], NULL, 10);
-            printf ("run for %d instructions\n", cpu->debug.run);
+            nes->cpu.debug.run = strtoul(argv[0], NULL, 10);
+            printf ("run for %d instructions\n", nes->cpu.debug.run);
             break ;
         }
         else if (!strcmp (action, "ppuinfo")) {
-            printf ("name_table_addr: %01x\n", ppu->name_table_addr);
-            printf ("vertical_write: %d\n", ppu->vertical_write);
-            printf ("sprt_ptn_tbl_addr: %d\n", ppu->sprt_ptn_tbl_addr);
-            printf ("scrn_ptn_tbl_addr: %d\n", ppu->scrn_ptn_tbl_addr);
-            printf ("sprt_size: %d\n", ppu->sprt_size);
-            printf ("master_save_mode: %d\n", ppu->master_slave_mode);
-            printf ("vblank_enable: %d\n", ppu->vblank_enable);
-            printf ("img_mask: %d\n", ppu->img_mask);
-            printf ("sprt_mask: %d\n", ppu->sprt_mask);
-            printf ("scrn_enable: %d\n", ppu->scrn_enable);
-            printf ("sprt_enable: %d\n", ppu->sprt_enable);
-            printf ("background_color: %01x\n", ppu->background_color);
-            printf ("read_only: %d\n", ppu->read_only);
-            printf ("sprt_per_line: %d\n", ppu->sprt_per_line);
-            printf ("hit: %d\n", ppu->hit);
-            printf ("vblank: %d\n", ppu->vblank);
-            printf ("vram_ptr: %04x\n", ppu->vram_ptr);
+            printf ("name_table_addr: %01x\n", nes->ppu.name_table_addr);
+            printf ("vertical_write: %d\n", nes->ppu.vertical_write);
+            printf ("sprt_ptn_tbl_addr: %d\n", nes->ppu.sprt_ptn_tbl_addr);
+            printf ("scrn_ptn_tbl_addr: %d\n", nes->ppu.scrn_ptn_tbl_addr);
+            printf ("sprt_size: %d\n", nes->ppu.sprt_size);
+            printf ("master_save_mode: %d\n", nes->ppu.master_slave_mode);
+            printf ("vblank_enable: %d\n", nes->ppu.vblank_enable);
+            printf ("img_mask: %d\n", nes->ppu.img_mask);
+            printf ("sprt_mask: %d\n", nes->ppu.sprt_mask);
+            printf ("scrn_enable: %d\n", nes->ppu.scrn_enable);
+            printf ("sprt_enable: %d\n", nes->ppu.sprt_enable);
+            printf ("background_color: %01x\n", nes->ppu.background_color);
+            printf ("read_only: %d\n", nes->ppu.read_only);
+            printf ("sprt_per_line: %d\n", nes->ppu.sprt_per_line);
+            printf ("hit: %d\n", nes->ppu.hit);
+            printf ("vblank: %d\n", nes->ppu.vblank);
+            printf ("vram_ptr: %04x\n", nes->ppu.vram_ptr);
         }
         else if (!strcmp (action, "call")) {
           uint8_t       opcode;
@@ -181,7 +148,7 @@ nes_cmd (struct nes *   nes,
           opcode = strtoul (argv[0], NULL, 16);
           param = argc > 1 ? strtoul (argv[1], NULL, 16) : 0x0000;
 
-          nes_cpu_call (nes, cpu, opcode, param);
+          cpu_call (&nes->cpu, opcode, param);
         }
         else if (!strcmp (action, "flip")) {
             al_flip_display ();
@@ -191,4 +158,37 @@ nes_cmd (struct nes *   nes,
         }
     }
     return (0);
+}
+
+void
+_put_memory (const uint8_t * memory,
+             unsigned int    offset,
+             unsigned int    size)
+{
+    unsigned int        i;
+
+    printf ("%04x: ", offset);
+    for (i = 0; i < size; i++) {
+        printf("%02x ", (unsigned char)memory[offset + i]);
+        if (!((i + 1) % 32) && (i + 1) < size) {
+            printf ("\n%04x: ", offset + i);
+        }
+    }
+    printf("\n");
+}
+
+void
+_put_stack (const uint8_t * memory,
+            unsigned int    offset,
+            unsigned int    size)
+{
+    unsigned int        i;
+
+    printf ("%04x: ", offset);
+    for (i = size; i; i--) {
+        printf("%02x ", (unsigned char)memory[offset - i]);
+        if (i - 1)
+            printf ("\n%04x: ", offset - i - 0x100);
+    }
+    printf("\n");
 }

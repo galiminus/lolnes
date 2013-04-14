@@ -14,28 +14,24 @@
 #include "debug.h"
 #include "display.h"
 
-int _nes_parse_header (const char *, size_t, struct nes *);
-int _nes_parse_trainer (const char *, size_t, struct nes *);
-int _nes_parse_prg_rom (const char *, size_t, struct nes *);
-int _nes_parse_chr_rom (const char *, size_t, struct nes *);
+int _nes_parse (struct nes *, const char *, size_t);
+int _nes_parse_header (struct nes *, const char *, size_t);
+int _nes_parse_trainer (struct nes *, const char *, size_t);
+int _nes_parse_prg_rom (struct nes *, const char *, size_t);
+int _nes_parse_chr_rom (struct nes *, const char *, size_t);
 
 int
 nes_init (struct nes *  nes,
-          uint32_t      options)
+          uint32_t      options,
+          const char *  path)
 {
+    struct stat stat;
+
     if (!al_init ()) {
         fprintf (stderr, "failed to initialize allegro!\n");
         return (-1);
     }
     nes->options = options;
-    return (0);
-}
-
-int
-nes_open (const char *  path,
-          struct nes *  nes)
-{
-    struct stat stat;
 
     nes->fd = open (path, O_RDONLY);
     if (nes->fd == -1) {
@@ -54,9 +50,12 @@ nes_open (const char *  path,
         goto close_fd;
     }
 
-    if (nes_parse (nes->rom, stat.st_size, nes) == -1) {
+    if (_nes_parse (nes, nes->rom, stat.st_size) == -1) {
         goto munmap_rom;
     }
+
+    cpu_init (&nes->cpu, nes);
+    ppu_init (&nes->ppu, nes);
 
     return (0);
 
@@ -68,14 +67,27 @@ nes_open (const char *  path,
     return (-1);
 }
 
+
 int
-nes_parse (const char * rom,
-           size_t       size,
-           struct nes * nes)
+nes_exec (struct nes *  nes)
+{
+    int     cycles;
+
+    cycles = cpu_exec (&nes->cpu);
+    for (cycles *= 3; cycles; cycles--)
+        ppu_exec (&nes->ppu);
+
+    return (cycles);
+}
+
+int
+_nes_parse (struct nes * nes,
+            const char * rom,
+            size_t       size)
 {
     size_t      parsed_size;
 
-    int (*parsers[])(const char *, size_t, struct nes *) = {
+    int (*parsers[])(struct nes *, const char *, size_t) = {
         _nes_parse_header,
         _nes_parse_trainer,
         _nes_parse_prg_rom,
@@ -85,7 +97,7 @@ nes_parse (const char * rom,
     unsigned int i;
 
     for (i = 0; parsers[i]; i++) {
-        parsed_size = parsers[i](rom, size, nes);
+        parsed_size = parsers[i](nes, rom, size);
         if (parsed_size == -1) {
             goto error;
         }
@@ -100,9 +112,9 @@ nes_parse (const char * rom,
 }
 
 int
-_nes_parse_header (const char * rom,
-                   size_t       size,
-                   struct nes * nes)
+_nes_parse_header (struct nes * nes,
+                   const char * rom,
+                   size_t       size)
 {
     if (size < 16) {
         printf ("Invalid ROM header size\n");
@@ -126,9 +138,9 @@ _nes_parse_header (const char * rom,
 }
 
 int
-_nes_parse_trainer (const char *        rom,
-                    size_t              size,
-                    struct nes *        nes)
+_nes_parse_trainer (struct nes *        nes,
+                    const char *        rom,
+                    size_t              size)
 {
     if (!nes->header.trainer) {
         return (0);
@@ -144,9 +156,9 @@ _nes_parse_trainer (const char *        rom,
 }
 
 int
-_nes_parse_prg_rom (const char *        rom,
-                    size_t              size,
-                    struct nes *        nes)
+_nes_parse_prg_rom (struct nes *        nes,
+                    const char *        rom,
+                    size_t              size)
 {
     size_t      prg_rom_size;
 
@@ -167,9 +179,9 @@ _nes_parse_prg_rom (const char *        rom,
 }
 
 int
-_nes_parse_chr_rom (const char *        rom,
-                    size_t              size,
-                    struct nes *        nes)
+_nes_parse_chr_rom (struct nes *        nes,
+                    const char *        rom,
+                    size_t              size)
 {
     size_t      chr_rom_size;
 
@@ -185,25 +197,4 @@ _nes_parse_chr_rom (const char *        rom,
     nes->chr_rom = rom;
 
     return (chr_rom_size);
-}
-
-int
-nes_exec (struct nes *  nes)
-{
-    struct cpu  cpu;
-
-    nes_cpu_init (nes, &cpu);
-
-    if (nes->options & NES_DISASSEMBLE) {
-        return (nes_cpu_disassemble (nes, &cpu));
-    }
-
-    for (;;) {
-        if (nes->options & NES_DEBUG) {
-            if (nes_cmd (nes, &cpu, &cpu.ppu) == -1) {
-                return (-1);
-            }
-        }
-        nes_cpu_exec (nes, &cpu);
-    }
 }
