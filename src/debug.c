@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <allegro5/allegro.h>
 
 #include "nes.h"
 #include "cpu.h"
@@ -131,6 +132,14 @@ nes_cmd (struct nes *   nes,
 
             _nes_put_memory (cpu->ppu.mem, offset, size);
         }
+        else if (!strcmp (action, "sprtmem")) {
+            size_t      size;
+            size_t      offset;
+
+            offset = argc > 0 ? strtoul(argv[0], NULL, 16) : 0x00;
+            size = argc > 1 ? strtoul(argv[1], NULL, 16) : 0xFF;
+            _nes_put_memory (cpu->ppu.sprt_mem, offset, size);
+        }
         else if (!strcmp (action, "stack")) {
             _nes_put_stack (cpu->mem, 0x200, 0xFF - cpu->regs.s);
         }
@@ -172,7 +181,10 @@ nes_cmd (struct nes *   nes,
           opcode = strtoul (argv[0], NULL, 16);
           param = argc > 1 ? strtoul (argv[1], NULL, 16) : 0x0000;
 
-          nes_cpu_call (nes, cpu, nes->options, opcode, param);
+          nes_cpu_call (nes, cpu, opcode, param);
+        }
+        else if (!strcmp (action, "flip")) {
+            al_flip_display ();
         }
         else {
             printf ("Unknown command: %s\n", action);

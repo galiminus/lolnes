@@ -20,12 +20,14 @@ int _nes_parse_prg_rom (const char *, size_t, struct nes *);
 int _nes_parse_chr_rom (const char *, size_t, struct nes *);
 
 int
-nes_init (struct nes *  nes)
+nes_init (struct nes *  nes,
+          uint32_t      options)
 {
     if (!al_init ()) {
         fprintf (stderr, "failed to initialize allegro!\n");
         return (-1);
     }
+    nes->options = options;
     return (0);
 }
 
@@ -186,23 +188,22 @@ _nes_parse_chr_rom (const char *        rom,
 }
 
 int
-nes_exec (struct nes *  nes,
-          uint32_t      options)
+nes_exec (struct nes *  nes)
 {
     struct cpu  cpu;
 
     nes_cpu_init (nes, &cpu);
 
-    if (options & NES_DISASSEMBLE) {
+    if (nes->options & NES_DISASSEMBLE) {
         return (nes_cpu_disassemble (nes, &cpu));
     }
 
     for (;;) {
-        if (options & NES_DEBUG) {
+        if (nes->options & NES_DEBUG) {
             if (nes_cmd (nes, &cpu, &cpu.ppu) == -1) {
                 return (-1);
             }
         }
-        nes_cpu_exec (nes, &cpu, options);
+        nes_cpu_exec (nes, &cpu);
     }
 }

@@ -15,7 +15,7 @@ nes_ppu_init (struct nes * nes,
               struct ppu * ppu)
 {
     memset (ppu->mem, 0, sizeof (ppu->mem));
-    memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x1000);
+    memcpy (ppu->mem, nes->chr_rom, nes->header.chr_rom_size * 0x2000);
 
     ppu->vram_ptr = 0;
     ppu->name_mirroring = nes->header.a11 << 1 | nes->header.a10;
@@ -28,8 +28,7 @@ nes_ppu_init (struct nes * nes,
 void
 nes_ppu_exec (struct nes *      nes,
               struct cpu *      cpu,
-              struct ppu *      ppu,
-              uint32_t          options)
+              struct ppu *      ppu)
 {
     ppu->c_regs_1 = cpu->mem[0x2000];
     ppu->c_regs_2 = cpu->mem[0x2001];
@@ -58,11 +57,11 @@ nes_ppu_exec (struct nes *      nes,
     case PPU_DRAW_PIXEL:
         nes_draw_pixel (nes, cpu, ppu->x, ppu->y);
         if (ppu->x == 255) {
-            if (ppu->y == 239) {
-                if (!ppu->vblank_enable) {
+            if (ppu->y == 242) {
+/*                if (!ppu->vblank_enable) {
                     ppu->state = PPU_FRAME_START;
                     break ;
-                }
+                    }*/
 
                 al_flip_display ();
 
@@ -143,7 +142,6 @@ nes_ppu_vram_set_ptr (struct cpu *      cpu,
                       uint8_t           value)
 {
     ppu->vram_ptr = (ppu->vram_ptr << 8) | value;
-    printf("VRAM PTR: %04x %d\n", ppu->vram_ptr, cpu->debug.count);
     cpu->mem[0x2007] = ppu->mem[ppu->vram_ptr % 0x4000];
 }
 
@@ -227,18 +225,13 @@ nes_ppu_vblank_interrupt (struct cpu *       cpu,
     nes_cpu_interrupt (cpu, INTERRUPT_TYPE_NMI);
 }
 
-void
+uint8_t
 nes_ppu_get_tile (const uint8_t *       graph_mem,
                   uint16_t              addr,
-                  uint8_t *             tile)
+                  uint8_t               x,
+                  uint8_t               y)
 {
-    int y;
-    int x;
-
-    for (y = 0; y < 0x8; y++)
-        for (x = 0; x < 0x8; x++)
-            tile[y * 0x08 + x] =
-                ((graph_mem[addr + y] & (0x80 >> x)) >> (7 - x))                |
-                ((graph_mem[addr + y + 0x08] & (0x80 >> x)) >> (7 - x)) << 1;
+    return (((graph_mem[addr + y] & (0x80 >> x)) >> (7 - x)) |
+            ((graph_mem[addr + y + 0x08] & (0x80 >> x)) >> (7 - x)) << 1);
 }
 

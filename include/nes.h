@@ -102,9 +102,9 @@ struct nes
 #define NES_DEBUG       0x01
 #define NES_DISASSEMBLE 0x02
 
-int nes_init (struct nes *);
+int nes_init (struct nes *, uint32_t);
 int nes_open (const char *, struct nes *);
 int nes_parse (const char *, size_t, struct nes *);
-int nes_exec (struct nes *, uint32_t);
+int nes_exec (struct nes *);
 
 #endif /* !__NES_H__ */

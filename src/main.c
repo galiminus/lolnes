@@ -14,11 +14,10 @@ main (int argc, const char ** argv)
         return (0);
     }
 
-    if (nes_init (&nes) == -1) {
+    if (nes_init (&nes, options) == -1) {
         goto error;
     }
-    nes.options = options;
-    if (!(options & NES_DISASSEMBLE) && init_display (&nes) == -1) {
+    if (!(nes.options & NES_DISASSEMBLE) && init_display (&nes) == -1) {
         goto error;
     }
 
@@ -26,7 +25,7 @@ main (int argc, const char ** argv)
         goto error;
     }
 
-    nes_exec (&nes, options);
+    nes_exec (&nes);
 
     return (0);
 

@@ -94,8 +94,12 @@ struct ppu
     uint32_t            vblank_counter;
 };
 
+struct color_layout {
+
+};
+
 #define BOOT_DELAY      30000
-#define HBLANK_DELAY    85
+#define HBLANK_DELAY    86
 #define VBLANK_DELAY    6820
 
 #define MIRROR_ALL              0x00
@@ -105,7 +109,7 @@ struct ppu
 
 struct cpu;
 void nes_ppu_init (struct nes *, struct cpu *, struct ppu *);
-void nes_ppu_exec (struct nes *, struct cpu *, struct ppu *, uint32_t);
+void nes_ppu_exec (struct nes *, struct cpu *, struct ppu *);
 
 void nes_ppu_dma (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vblank_interrupt (struct cpu *, struct ppu *);
@@ -114,6 +118,6 @@ void nes_ppu_spr_ram_store (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vram_set_ptr (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_vram_store (struct cpu *, struct ppu *, uint8_t);
 void nes_ppu_scroll (struct cpu *, struct ppu *, uint8_t);
-void nes_ppu_get_tile (const uint8_t *, uint16_t, uint8_t *);
+uint8_t nes_ppu_get_tile (const uint8_t *, uint16_t, uint8_t, uint8_t);
 
 #endif /* !__PPU_H__ */
